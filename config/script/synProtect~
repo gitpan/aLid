@@ -1,0 +1,232 @@
+#!/usr/bin/perl
+
+use DateTime;
+require "/etc/aLid/sendmail";
+require "/etc/aLid/time";
+require "/etc/aLid/sendlog";
+
+qx{ touch /etc/aLid/run.info };
+open INFO, ">>/etc/aLid/run.info";
+print INFO "$$\n";
+close INFO;
+
+print "SynProtect\n";
+$range = $ARGV[0];
+print "Event Range: $range\n";
+$evt_bound = $ARGV[1];
+print "Event Bound: $evt_bound\n";
+$red_bound = $ARGV[2];
+print "Redemption Bound: $red_bound\n";
+$fileBlocked = $ARGV[3];
+print "Ip Blocked's File: $fileBlocked\n";
+$mode = uc($ARGV[4]);
+die "Error Option MODE: Insert mail, log, all or nothing\n" if ( $mode ne 'MAIL' && $mode ne 'LOG' && $mode ne 'ALL' && $mode ne 'NOTHING' );
+print "Mode: $mode\n";
+$drop = uc($ARGV[5]);
+die "Error Option DROP: Insert drop or nodrop\n" if ($drop ne 'DROP' && $drop ne 'NODROP');
+print "Drop: $drop\n";
+if( $mode eq 'ALL' || $mode eq 'MAIL' ) {
+	$freqEmail = $ARGV[6];
+	print "Mail's Frequency: $freqEmail\n";
+}
+
+$fileEmails = "/etc/aLid/emails.conf";
+$fileLog = "/etc/aLid/log";
+
+# load blocked ip 
+qx{ touch $fileBlocked };
+@file_ip_blocked = qx{ cat $fileBlocked };
+
+for( $i = 0; $i < @file_ip_blocked; $i++ ){
+	#print "READ FROM FILE: $file_ip_blocked[$i]\n";
+	if( $file_ip_blocked[$i] =~ /^(.*)\s(\d+)/ ) {
+		qx{ iptables -D FORWARD -s $1 -j DROP };
+		qx{ iptables -D FORWARD -d $1 -j DROP };
+		if( $mode eq 'ALL' || $mode eq 'LOG' ) {
+			&sendlog( $fileLog, "SynProtect Initialization: Redemption ip=$1" );
+		}
+	}
+}
+
+qx{ rm $fileBlocked };
+qx{ touch $fileBlocked };
+
+#$fileInput = "/var/log/iptables.log";
+#open LOGFILE, "tail --sleep-interval=0 -f $fileInput|" || die "Error Opening the file: $fileInput\n";
+
+$modified_blocked = 0;
+
+while ( $line = <STDIN> ){
+	$date_update = 0;
+	if( keys( %ip_blocked ) > 0 ) {
+		$now_time = qx{ date -u };
+		#print "NOW TIME = $now_time\n";
+
+		if( $now_time =~ /\w\w\w\s(\w\w\w)\s+(\d+)\s(\d+)\:(\d+)\:(\d+)\s\w+\s(\d+)/ ) {
+			#print "Month $1 day $2 hour $3 minute $4 second $5 year $6\n";
+			$utc_t = DateTime->new( year => $6, month => &month_index($1), day => $2, 
+									hour => $3, minute=> $4, second => $5, time_zone => 'Europe/Rome' )->utc_rd_as_seconds();
+			#print "DATA = $dt\n";
+			$date_update = 1;
+		}
+
+		while (($ip, $ip_time) = each(%time_blocked)){
+			#print "LETTO IP = $ip, TIME = $ip_time, NOW = $utc_t \n";
+			# Se l'ip bloccato merita la redenzione non lo metto in lista
+			if( $utc_t - $ip_time >= $red_bound ) {
+				$last_modify = $utc_t;
+				delete ($ip_blocked{$ip});
+				delete ($time_blocked{$ip});
+				print STDERR "REDEMPTION $ip SYN SCAN\n";
+				qx{ iptables -D FORWARD -s $ip -j DROP };
+				qx{ iptables -D FORWARD -d $ip -j DROP };
+				if( $mode eq 'ALL' || $mode eq 'LOG' ) {
+					&sendlog( $fileLog, "SynProtect Redemption ip=$ip" );
+				}
+			}
+		}
+	}
+
+	if ( $line =~/RES=\dx\d\d\sSYN\sURGP=.*$/ ) {
+		if( $line =~ /^(\w+)\s+(\d+)\s(\d+)\:(\d+)\:(\d+).*\sSRC=(\d+\.\d+\.\d+\.\d+)\sDST=(\d+\.\d+\.\d+\.\d+).*\sPROTO=TCP\s.*\sDPT=(\d+)\s/ ){	
+			#print STDERR "s";
+
+			if( $date_update == 0 ) {
+				$now_time = qx{ date -u };
+				#print "NOW TIME = $now_time\n";
+				if( $now_time =~ /\w\w\w\s(\w\w\w)\s+(\d+)\s(\d+)\:(\d+)\:(\d+)\s\w+\s(\d+)/ ) {
+					$utc_t = DateTime->new( year => $6, month => &month_index($1), day => $2, 
+											hour => $3, minute=> $4, second => $5, time_zone => 'Europe/Rome' )->utc_rd_as_seconds();
+					#print "DATA = $dt\n";
+					$date_update = 1;
+				}
+			}
+
+			if($ip_blocked{$6} == 1) {
+				$last_modify = $utc_t;
+				$time_blocked{$6} = $utc_t;
+			}
+			else {
+				$logMonth =$1; $logDay = $2; $hours = $3; $minutes = $4; $seconds = $5; $ipsource = $6; $ipdest = $7; $dport = $8;
+				# Calculate system's year
+				$system_year = qx< date +%Y >;
+				chomp($system_year);
+				$current_time = DateTime->new( year => $system_year, month => &month_index($logMonth), day => $logDay, 
+												hour => $hours, minute => $minutes, second => $seconds, 
+												time_zone => 'Europe/Rome' )->utc_rd_as_seconds();
+				#print "UTC LOG = $current_time \n";
+				# add to data's list
+				$dati{"$current_time $ipsource $ipdest $dport"}++;
+
+				# calculate port requests and remove old data
+				%tmp = (); # delete old structure
+				undef %tmp;
+				while (($chiave, $valore) = each(%dati))
+				{
+					if( $chiave =~ /^(\d+)\s/ ) {
+						if( $current_time - $1 > $range ) {
+							delete ($dati{$chiave});
+						}
+						elsif( $chiave =~ /^\d+\s(\d+\.\d+\.\d+\.\d+)\s.*\s(\d+)$/ ) {
+							# every port is counted once
+							$tmp{"$1 $2"}++;
+						}
+					}
+				}
+
+				# new structure with consumptive data
+				%report = (); # delete old structure
+				undef %report;
+				while (($k, $v) = each(%tmp)){
+					# for every ip it calcute sum of tries
+					if( $k =~ /^(\d+\.\d+\.\d+\.\d+)\s/ ) {
+						# every port is counted once
+						$report{$1}++;
+					}
+				}
+
+				while (($k, $v) = each(%report)){
+					#print "IP = $k TRIES = $v\n";
+					if($v > $evt_bound){
+						# delete data where is present found ip
+						while (($kData, $vData) = each(%dati)){
+							#print "key $kData value $vData - report $k $v\n";
+							if( $kData =~ /^\d+\s(\d+\.\d+\.\d+\.\d+)/ && $1 eq $k ) {
+								delete $dati{$kData};
+							}
+						}
+						$last_modify = $utc_t;
+						# Save bad ip's informations
+						$bad_ip_source = $k;
+						$n_requests = $v;
+						$time_requests = $utc_t;
+						#print "New bad ip $k\n";
+						print STDERR "BLOCK: $k SYN SCAN\n";
+						if( $drop eq 'DROP' ) {
+							qx{ iptables -I FORWARD -d $k -j DROP };
+							qx{ iptables -I FORWARD -s $k -j DROP };
+							if( $mode eq 'ALL' || $mode eq 'LOG' ) {
+								&sendlog( $fileLog, "SynProtect Blocking ip=$k" );
+							}
+						}
+						$ip_blocked{$k} = 1;
+						# insert with detecting time and not with logging time
+						$time_blocked{$k} = $utc_t;
+					}
+				}
+			}	
+		}
+	}
+
+	if( $bad_ip_source ne '' ) {
+		# if there are bad ip
+		if( $mode eq 'MAIL' || $mode eq 'ALL' ){
+			if( $mailPreparing == 0 ) {
+				# initialize mail
+				$mailPreparingTime = $utc_t;
+				$mailPreparing = 1;
+				$message = "SynProtect\n\n";
+				$currDate = &getTime();
+				$message .= "Data Detection: $currDate UTC\n";
+				$message .= "Blocking Bound: $evt_bound\n";
+				$message .= "Redemption Bound: $red_bound\n";
+				$message .= "Range (sec): $range\n\n";
+			}
+			$message .= "IP Source: $bad_ip_source\t";
+			$message .= "Requests: $n_requests\t";
+			$message .= "Event Date: $logDay $logMonth $hours:$minutes:$seconds UTC\n";
+		}
+	}
+	# if there is a mail still to send
+	if( $mailPreparing == 1 && ($utc_t - $mailPreparingTime) >= $freqEmail ) {
+		# load mail addresses
+		@emails = qx { cat $fileEmails };
+		foreach $email( @emails ){
+			#print "SEND EMAIL to $email\n";
+			#print "Message:\n$message\n MODE $mode --------------------------------------------------";
+			&sendmail( "tcpdetective\@unical.it", $email, "Detected TCP Port Scanning", $message );
+		}
+		if ( $mode eq 'ALL' ) {
+			&sendlog( $fileLog, "SynProtect sent an email notification" );
+		}
+		$mailPreparingTime = 0;
+		$mailPreparing = 0;
+		$message = "";
+	}
+
+	# Refresh ip blocked's file
+	if( $modified_blocked < $last_modify ) {
+		$modified_blocked = $last_modify;
+		open(IPBLOCK, ">$fileBlocked");
+		while (($k, $v) = each(%ip_blocked)){
+			print ">";
+			print IPBLOCK "$k $time_blocked{$k}\n";
+		}
+		close(IPBLOCK);
+	}
+
+	# Reset data structure
+	$bad_ip_source = ''; 
+	$n_requests = 0; 
+	$time_requests = 0; 
+}

@@ -1,0 +1,134 @@
+=head1 NAME
+
+arpProtect - It monitors associations IP-MAC
+
+=head1 SYNOPSIS
+
+arpProtect FILENAME RED_BOUND NOTIFY FILTER INTERFACE
+
+=head1 DESCRIPTION
+
+arpProtect allows to monitor IP-MAC used in a specific collision's domain. Its analysis is based on arpwatch's events.
+
+=head1 OPTIONS
+
+=over 8
+
+=item B<FILENAME> 
+
+File's path in which are defined only allowed IP-MAC associations. File must respect following syntattic rule:
+
+=over 8
+
+Examples. Ip's list with mac's list
+		
+		10.0.0.2 10.2.0.2 Aa:Bb:Cc:Dd:Ee:c1 Aa:Bb:Cc:Dd:Ee:c6 
+
+A subnet with a mac's list
+
+		10.0.0.0/16 Aa:Bb:Cc:Dd:Ee:c1 Aa:Bb:Cc:Dd:Ee:c6 
+
+A subnet and a ip without bond
+
+		10.0.0.0/16 *
+		10.1.0.1	*
+
+=back
+
+For each line is possible to define ip's list in that is possible to associate following mac address's list.
+
+=item B<EVT_BOUND> 
+
+It's the maximun number of times that the found event can verifies inside of temporal window(RANGE). Source ip, findable on log file, is considered responsible. At the overcoming of threshold, depending on configuration, can block source ip or simply notify what is happened. If an ip is blocked, there is also a mark of the moment in which it happens with reference to universal time (UTC) in seconds.
+
+=item B<NOTIFY> 
+
+There are 4 kinds of notific option: MAIL, LOG, ALL, NOTHING.
+
+=over 8
+
+=item MAIL
+
+Send a notific email to alla addresses specified on file /etc/aLid/email.conf
+
+=item LOG
+
+Allow to write a line on log file of application.
+		
+=item ALL
+
+Include both notify's typologies B<MAIL> e B<LOG>.
+	
+=item NOTHING
+
+No nothification.
+
+=back
+
+=item B<FILTER>
+
+It specifics the policy to adopt considering ip detected. Options accepted are:  B<DROP> and B<NODROP>.
+
+=over 8
+
+=item DROP
+
+It block detected ip in the firewall applying a specific rule.
+
+=item NODROP
+
+It doesn't execute a rule of drop in the firewall.
+
+=back
+
+=item B<INTERFACE>
+
+Network interface that you want monitor
+
+=back
+
+=head1 EXAMPLES
+
+=over 8
+
+=item B</etc/aLid/script/arpProtect /etc/aLid/ipmac all drop> 
+
+Script is executed using associations defined in file /etc/aLid/ipmac, all as notify rule and drop as filter.
+
+=back
+
+=head1 FILES
+
+=over 8
+
+=item B</etc/aLid/aLid.conf> 
+
+Configuration's file of the application.
+
+=back
+
+=head1 REQUIREMENT
+
+=over 8
+
+=item B<arpwatch> 
+
+Arpwatch - http://www.securityfocus.com/tools/142
+
+=back
+
+=head1 SEE ALSO
+
+B<sharedTail, aLid.conf>
+
+=head1 AUTHOR
+
+Andrea Martire (andreamartire@gmail.com)
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright © 2010 Andrea Martire <andreamartire@gmail.com>. 
+License  GPLv3+:  GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.
+This  is  free  software:  you  are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+

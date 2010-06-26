@@ -1,0 +1,133 @@
+=head1 NAME
+
+arpProtect - Monitora associazioni IP-MAC
+
+=head1 SYNOPSIS
+
+arpProtect FILENAME SOGLIA_RED NOTIFICA FILTRO INTERFACCIA
+
+=head1 DESCRIPTION
+
+arpProtect consente di monitorare le associazioni IP-MAC utilizzate. La sua analisi e' basata sugli event lanciati da arpwatch. 
+
+=head1 OPTIONS
+
+=over 8
+
+=item B<FILENAME>
+
+Path al file in cui sono definite solo le associazioni IP-MAC consentite. Il file deve rispettare la seguente regola sintattica:
+
+	ES. 10.0.0.2 10.2.0.2 Aa:Bb:Cc:Dd:Ee:c1 Aa:Bb:Cc:Dd:Ee:c6 
+
+Per ogni riga e' possibile definire la lista degli ip a cui e' possibile associare la successiva lista di mac address.
+
+E' possibile specificare delle sottoreti e assegnare a queste delle liste di mac address:
+
+	ES. 10.0.0.0/16 Aa:Bb:Cc:Dd:Ee:c1 Aa:Bb:Cc:Dd:Ee:c6 
+
+Inoltre possono essere definite anche regole senza vincoli sui mac address:
+
+	ES. 10.0.0.0/16 *
+		10.1.0.1	*
+
+=item B<SOGLIA_RED>
+
+E' il numero di secondi nei quali un'ip bloccato non puo' comunicare attraverso la macchina dove e' installato aLid. Quando la soglia di redenzione viene raggiunta l'ip bloccato viene sbloccato ( redenzione ). Il superamento e' calcolato nel seguente modo: 
+
+SE ( TEMPO_CORRENTE - TEMPO_BLOCCO > SOGLIA_RED ) 
+	SBLOCCA L'IP BLOCCATO
+ALTRIMENTI
+	L'IP BLOCCATO RESTA BLOCCATO
+
+=item B<NOTIFICA> 
+
+La tipologia di notifica adottata dallo script. Sono previste 3 tipologia di opzioni: MAIL, LOG, ALL.
+
+=over 8
+
+=item B<MAIL>
+
+Consente di inviare una mail di notifica a tutti gli indirizzi specificati nel file /etc/aLid/emails
+
+=item B<LOG>
+
+Consente di scrivere una riga nel file di log (/etc/aLid/log) dell'applicazione.
+
+=item B<ALL>
+
+Comprende entrambe le tipologie di notifiche B<MAIL> e B<LOG>.
+
+=back
+
+=item B<FILTRO>
+
+Specifica la politica da adottare riguardo gli ip rilevati. Le opzioni accettate sono:  B<DROP> e B<NODROP>.
+
+=over 8
+
+=item B<DROP>
+
+Blocca l'ip rilevato nel firewall, applicando un'apposita regola.
+
+=item B<NODROP>
+
+Non esegue nessuna regola di drop nel firewall.
+
+=back
+
+=item B<INTERFACCIA>
+
+Specifica l'interfaccia di rete sulla quale effettuare il controllo
+
+=back
+
+=head1 EXAMPLES
+
+=over 8
+
+=item B</etc/aLid/script/arpProtect /etc/aLid/ipmac all drop> 
+
+Lo script viene eseguito utilizzando le associazioni definite nel file /etc/aLid/ipmac, all come regola di notifica e drop come filtro.
+
+=back
+
+=head1 FILES
+
+=over 8
+
+=item B</etc/aLid/aLid.conf> 
+
+File di configurazione dell'applicazione
+
+=back
+
+=head1 REQUIREMENT
+
+=over 8
+
+=item B<arpwatch> 
+
+Arpwatch - http://www.securityfocus.com/tools/142
+
+=back
+
+=head1 SEE ALSO
+
+=over 8
+
+=item B<sharedTail, aLid.conf>
+
+=back
+
+=head1 AUTHOR
+
+Andrea Martire (andreamartire@gmail.com)
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright © 2010 Andrea Martire <andreamartire@gmail.com>. 
+License  GPLv3+:  GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.
+This  is  free  software:  you  are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+

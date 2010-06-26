@@ -1,0 +1,87 @@
+=head1 NAME
+
+aLid - Automatic Logging Intrusion Detection system 
+
+=head1 SYNOPSIS
+
+B<aLid [OPTIONS]>
+
+=head1 DESCRIPTION
+
+aLid e' un sistema di Automatic Intrusion Detection and Filtering. E' scritto in perl e basato sull'analisi di file di log. Consente di intercettare tentativi di port scanning da parte di attaccanti interni e/o estrerni ad un preciso dominio di collisione e di intervenire filtrando il traffico. E' possibile inoltre definire una lista di regole e di filtri sulla base dei quali aLid adatterà il suo comportamento. Per essere efficace in caso di attacco il programma deve essere installato su un firewall in quanto sono previste anche regole di filtraggio.
+
+=head1 OPTIONS
+
+=over 8
+
+=item B<-r> 
+
+Permette solo l'esecuzione delle regole specificate nel file di configurazione (RULE)
+
+=item B<-s> 
+
+Permette solo l'esecuzione degli script (SCRIPT)
+
+=item B<-f> 
+
+Permette solo l'esecuzione dei filtri stateful (STATEFUL_FILTER)
+
+=item B<-a> 
+
+Esegue tutte le opzione specificate nel file di configurazione /etc/aLid/aLid.conf. Viene utilizzata di default se il programma viene avviato senza opzioni.
+
+=item B<-h> 
+
+Visualizza il presente manuale
+
+=back
+
+=head1 EXAMPLES
+
+=over 8
+
+=item B<aLid -rs> 
+
+Permette l'esecuzione delle regole e degli script
+
+=back
+
+=head1 FILES
+
+=over 8
+
+=item B</etc/aLid/aLid.conf> 
+
+File di configurazione dell'applicazione
+
+=back
+
+=head1 REQUIREMENT
+
+=over 8
+
+=item B<arpwatch> 
+
+Arpwatch - http://www.securityfocus.com/tools/142
+
+=item B<DateTime> 
+
+DateTime - Perl Library of cpan community
+
+=back
+
+=head1 SEE ALSO
+
+B<sharedTail, aLid.conf>
+
+=head1 AUTHOR
+
+Andrea Martire (andreamartire@gmail.com)
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright © 2010 Andrea Martire <andreamartire@gmail.com>. 
+License  GPLv3+:  GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.
+This  is  free  software:  you  are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+

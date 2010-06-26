@@ -1,0 +1,181 @@
+#!/usr/bin/perl
+
+# Copyright (C) 2010 Andrea Martire
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later
+# version.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+# details.
+#
+# You should have received a copy of the GNU General Public License along with
+# this program; if not, write to the Free Software Foundation, Inc., 51
+# Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+
+use Symbol;
+use IPC::Open2;
+use threads;
+require "/etc/aLid/sendlog";
+
+#	loading settings
+$namefileConf = "/etc/aLid/aLid.conf";
+$fileLog = "/etc/aLid/log"; 
+
+$optionsStr = "@ARGV";
+$optionsStr =~ s/\s|\-//g;
+@arrayOptions = split( //, $optionsStr );
+
+foreach $v( @arrayOptions ) {
+	$options{$v} = 1;
+}
+
+if ( keys(%options) == 0 || $options{'a'} == 1 ) {
+	delete $options{'a'};
+	$options{'s'} = 1;
+	$options{'r'} = 1;
+	$options{'f'} = 1;
+	$optionsStr = "srf";
+}
+
+while (($k,$v) = each (%options)){
+	if ( $k ne 's' && $k ne 'r' && $k ne 'f' ) {
+		delete $options{$k};
+	}
+}
+
+if ( $options{'h'} ) {
+	@out = qx{ man aLid };
+	print @out;	
+	exit;
+}
+
+@out = qx{ ps a | grep -v grep | grep aLid };
+
+foreach $el (@out) {
+	if( $el =~ /^\s+(\d+)\s/ ) {
+		if( $1 ne $$ ) {
+			push( @pidList, $1 );
+		}
+	}
+}
+
+qx{ touch /etc/aLid/run.info };
+
+if ( @pidList > 0 ) {
+	@runInfo = qx{ cat /etc/aLid/run.info };
+	push ( @runInfo, $$ );
+	chomp (	$runInfo[0] );
+
+	@oldOptions = split( //, $runInfo[0] );
+	foreach $v( @oldOptions ) {
+		delete $options{$v};
+	}
+
+	while ( ($k, $v) = each (%options)){
+		if ( $v == 1 && not ( $runInfo[0] =~ /$k/ ) ) {
+			$runInfo[0] .= $k;
+		}
+	}
+	open INFO, ">/etc/aLid/run.info";
+	
+	print INFO "$runInfo[0]\n";
+	
+	for( $i = 1; $i < @runInfo; $i++ ) {
+		print INFO "$runInfo[$i]";
+	}
+	print INFO "\n";
+	close INFO;
+}
+else{
+	qx{ rm /etc/aLid/run.info };
+	open INFO, ">>/etc/aLid/run.info";
+	print INFO "$optionsStr\n";
+	print INFO "$$\n";
+	close INFO;
+}
+
+@fileConf = qx{ cat $namefileConf | grep -v ^# | grep -v ^\$ };
+
+foreach $line( @fileConf ) {
+	if( $line =~ /^(\s|\t)*RULE=(.*?)(\s|\t)*FILE_INPUT=(\s|\t)*(.*?)(\s|\t)*$/ ) {
+		if( $options{'r'} || $options{'a'} ) {
+			#print "RULE FOUND = $2 FILE = -$5-\n";
+			$tmp = "/etc/aLid/script/eventProtect $2";	
+			$files{$5}[$fileIndex{$5}++] = $tmp;
+		}
+	}
+	elsif ( $line =~ /^(\s|\t)*SCRIPT=(.*?)(\s|\t)*FILE_INPUT=(\s|\t)*(.*?)(\s|\t)*$/ ) {
+		if( $options{'s'} ) {
+			#print "OTHER SCRIPT FOUND WITH FILE= $2 FILE = -$5-\n";
+			$files{$5}[$fileIndex{$5}++] = $2;
+		}
+	}
+	elsif ( $line =~ /^(\s|\t)*SCRIPT=(.*?)(\s|\t)*$/ ) {
+		if( $options{'s'} ) {
+			#print "OTHER SCRIPT FOUND WITHOUT FILE= $2\n";
+			push( @script, $2 );
+		}
+	}
+	elsif ( $line =~ /^(\s|\t)*STATEFUL_FILTER=(.*?)(\s|\t)*FILE_INPUT=(\s|\t)*(.*?)(\s|\t)*$/ ) {
+		if( $options{'f'} ) {
+			$sfActive = $counter{'statefulFilter'}++;
+			#print "FILTER = $2 FILE = $5\n";
+			$sff[$sfActive] = "/etc/aLid/script/statefulProtect $2";
+			$sffFile[$sfActive] = $5;
+		}
+	}
+	elsif ( $line =~ /^(\s|\t)*EXPRESSION=(.*?)(\s|\t)*TARGET=(\s|\t)*(.*?)(\s|\t)*$/ ) {
+		if( $options{'f'} ) {
+			if ( $counter{'statefulFilter'} == 0 ) {
+				die "Error: Founded Expression without filter's definition\n";
+			}
+			$sff[$sfActive] .= " $2 $5";
+		}
+	}
+}
+
+for( $i = 0; $i < @sff; $i++ ) {
+	#print "FILTER = $sff[$i] - FILE = $sffFile[$i]\n";
+	$files{$sffFile[$i]}[$fileIndex{$sffFile[$i]}++] = $sff[$i];
+}
+
+open INFO, ">>/etc/aLid/run.info";
+# execute script without shared reading
+foreach $s( @script ) {
+	system("$s &");
+	@outProc = qx{ ps ax | grep -v grep | grep "$s" };
+	foreach $procLine ( @outProc ){
+		if( $procLine =~ /^\s+(.*?)\s/ ) {
+			$pidProg = $1;
+		}
+	}
+	print INFO "$pidProg\n";
+}
+close INFO;
+
+# define thread's function
+sub thrsub {
+		qx{ /usr/bin/sharedTail @_ &};
+}
+
+$execution = 0;
+
+# execute script with shared reading
+while (($k, $v) = each(%files)){
+	#print "File = $k\n";
+	for( $i = 0; $i < @{$v}; $i++ ) {
+		${$v}[$i] =~ s/\s/\\?/g;
+		${$v}[$i] =~ s/\\/\\\\/g;
+		#print "Element = ${$v}[$i]\n";
+	}
+	$thr = threads->new( \&thrsub, $k, @{$v} );
+	$execution = 1;
+}
+
+if( $execution == 1 ) {
+	# wait thread's execution
+	$thr->join;
+}

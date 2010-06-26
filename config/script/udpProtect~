@@ -1,0 +1,252 @@
+#!/usr/bin/perl
+
+# Copyright (C) 2010 Andrea Martire
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later
+# version.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+# details.
+#
+# You should have received a copy of the GNU General Public License along with
+# this program; if not, write to the Free Software Foundation, Inc., 51
+# Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+
+#	EXAMPLE. udpProtect 10 5 7 /etc/aLid/ip_allowed /etc/aLid/ip_blocked all drop 60 
+
+use DateTime;
+require "/etc/aLid/sendmail";
+require "/etc/aLid/time";
+require "/etc/aLid/sendlog";
+
+qx{ touch /etc/aLid/run.info };
+open INFO, ">>/etc/aLid/run.info";
+print INFO "$$\n";
+close INFO;
+
+print "UdpProtect\n";
+$intervalloEvento = $ARGV[0];
+print "Intervallo Evento: $intervalloEvento\n";
+$sogliaEvento = $ARGV[1];
+print "Soglia Evento: $sogliaEvento\n";
+$sogliaRedenzione = $ARGV[2];
+print "Soglia Redenzione: $sogliaRedenzione\n";
+$fileAllowed = $ARGV[3];
+print "File Allowed: $fileAllowed\n";
+$fileBlocked = $ARGV[4];
+print "File Blocked: $fileBlocked\n";
+$mode = uc($ARGV[5]);
+die "Error Option MODE: Insert mail, log, all or nothing\n" if ( $mode ne 'MAIL' && $mode ne 'LOG' && $mode ne 'ALL' && $mode ne 'NOTHING' );
+print "Mode: $mode\n";
+$drop = uc($ARGV[6]);
+die "Error Option DROP: Insert drop or nodrop\n" if ($drop ne 'DROP' && $drop ne 'NODROP');
+print "Drop: $drop\n";
+if( $mode eq 'ALL' || $mode eq 'MAIL' ) {
+	$freqEmail = $ARGV[7];
+	print "Freq email: $freqEmail\n";
+}
+
+
+$fileEmails = "/etc/aLid/emails.conf";
+$fileLog = "/etc/aLid/log";
+
+# load allowed ip 
+qx{ touch $fileAllowed };
+@file_ip_allowed = qx{ cat $fileAllowed };
+
+for( $i = 0; $i < @file_ip_allowed; $i++ ){
+	print "READ FROM FILE: $file_ip_allowed[$i]\n";
+	if( $file_ip_allowed[$i] =~ /^(.*)/ ) {
+		$ip_allowed{$1} = 1;
+		print STDERR"ALLOWED UDP $1\n";
+	}
+}
+
+# load blocked ip 
+qx{ touch $fileBlocked };
+@file_ip_blocked = qx{ cat $fileBlocked };
+
+for( $i = 0; $i < @file_ip_blocked; $i++ ){
+	#print "READ FROM FILE: $file_ip_blocked[$i]\n";
+	if( $file_ip_blocked[$i] =~ /^(.*)\s(\d+)/ ) {
+		qx{ iptables -D FORWARD -s $1 -j DROP };
+		qx{ iptables -D FORWARD -d $1 -j DROP };
+		if( $mode eq 'ALL' || $mode eq 'LOG' ) {
+			&sendlog( $fileLog, "UdpProtect Initialization: Redemption ip=$1" );
+		}
+	}
+}
+
+qx{ rm $fileBlocked };
+qx{ touch $fileBlocked };
+
+$modified_blocked = 0;
+
+while ( $line = <STDIN> ){
+	$date_update = 0;
+	if( keys( %ip_blocked ) > 0 ) {
+		$now_time = qx{ date -u };
+		#print "NOW TIME = $now_time\n";
+
+		if( $now_time =~ /\w\w\w\s(\w\w\w)\s+(\d+)\s(\d+)\:(\d+)\:(\d+)\s\w+\s(\d+)/ ) {
+			$utc_t = DateTime->new( year => $6, month => &month_index($1), day => $2, 
+									hour => $3, minute=> $4, second => $5, time_zone => 'Europe/Rome' )->utc_rd_as_seconds();
+			#print "DATA = $dt\n";
+			$date_update = 1;
+		}
+	
+		while (($ip, $ip_time) = each(%time_blocked)){
+			if( $utc_t - $ip_time >= $sogliaRedenzione ) {
+				$last_modify = $utc_t;
+				delete ($ip_blocked{$ip});
+				delete ($time_blocked{$ip});
+				print STDERR "REDEMTION $ip UDP SCAN\n";
+				qx{ iptables -D FORWARD -s $ip -j DROP };
+				qx{ iptables -D FORWARD -d $ip -j DROP };
+				if( $mode eq 'ALL' || $mode eq 'LOG' ) {
+					&sendlog( $fileLog, "UdpProtect Redemption ip=$ip" );
+				}
+			}
+		}
+	}
+
+	if ( $line =~/PROTO=UDP/ && (not $line =~/PROTO=ICMP/) ) {
+		if( $line =~ /^(\w+)\s+(\d+)\s(\d+)\:(\d+)\:(\d+).*\sSRC=(\d+\.\d+\.\d+\.\d+)\sDST=(\d+\.\d+\.\d+\.\d+).*\sPROTO=UDP\s.*\sDPT=(\d+).*/ ){	
+			#print STDERR "u";	
+			if( $date_update == 0 ) {
+				$now_time = qx{ date -u };
+				#print "NOW TIME = $now_time\n";
+				if( $now_time =~ /\w\w\w\s(\w\w\w)\s+(\d+)\s(\d+)\:(\d+)\:(\d+)\s\w+\s(\d+)/ ) {
+					$utc_t = DateTime->new( year => $6, month => &month_index($1), day => $2, 
+											hour => $3, minute=> $4, second => $5, time_zone => 'Europe/Rome' )->utc_rd_as_seconds();
+					#print "DATA = $dt\n";
+					$date_update = 1;
+				}
+			}
+			
+		
+			if( $ip_blocked{$6} == 1 ) {
+				$last_modify = $utc_t;
+				$time_blocked{$6} = $utc_t;
+			}
+			elsif( $ip_allowed{$6} != 1 ) {
+				$logMonth =$1; $logDay = $2; $hours = $3; $minutes = $4; $seconds = $5; $ipsource = $6; $ipdest = $7; $dport = $8;
+				# Calculate system's year
+				$system_year = qx< date +%Y >;
+				chomp($system_year);
+				$current_time = DateTime->new( year => $system_year, month => &month_index($logMonth), day => $logDay, 
+												hour => $hours, minute => $minutes, second => $seconds, 
+												time_zone => 'Europe/Rome' )->utc_rd_as_seconds();
+				#print "UTC LOG = $current_time \n";
+				# Add to data's list
+				$dati{"$current_time $ipsource $ipdest $dport"}++;
+
+				%tmp = (); # delete old structure
+				undef %tmp;
+				while (($chiave, $valore) = each(%dati))
+				{
+					if( $chiave =~ /^(\d+)\s/ ) {
+						if( $current_time - $1 > $intervalloEvento ) {
+							delete ($dati{$chiave});
+						}
+						elsif( $chiave =~ /^\d+\s(\d+\.\d+\.\d+\.\d+)\s.*\s(\d+)$/ ) {
+							$tmp{"$1 $2"}++;
+						}
+					}
+				}
+
+				# Create consumptive structure
+				%report = (); # cancello vecchia struttura
+				undef %report;
+				while (($chiave, $valore) = each(%tmp)){
+					if( $chiave =~ /^(\d+\.\d+\.\d+\.\d+)\s/ ) {
+						$report{$1}++;
+					}
+				}
+
+				while (($k, $v) = each(%report)){
+					#print "IP = $k TRIES = $v\n";
+					if($v > $sogliaEvento){
+						while (($kData, $vData) = each(%dati)){
+							if( $kData =~ /^\d+\s(\d+\.\d+\.\d+\.\d+)/ && $1 eq $k ) {
+								delete $dati{$kData};
+							}
+						}
+						$last_modify = $utc_t;
+						# add to bad's ip
+						$bad_ip_source = $k;
+						$n_requests = $v;
+						$time_requests = $utc_t;
+						#print "New bad ip $k\n";
+						print STDERR "BLOCK: $k UDP SCAN\n";
+						if( $drop eq 'DROP' ) {
+							qx{ iptables -I FORWARD -d $k -j DROP };
+							qx{ iptables -I FORWARD -s $k -j DROP };
+							if( $mode eq 'ALL' || $mode eq 'LOG' ) {
+								&sendlog( $fileLog, "UdpProtect Blocking ip=$k" );
+							}
+						}
+						$ip_blocked{$k} = 1;
+						# insert with detecting time and not with logging time
+						$time_blocked{$k} = $utc_t;
+					}
+				}
+			}	
+		}
+	}
+
+	if( $bad_ip_source ne '' ) {
+		# Se sono presenti ip scorretti
+		if( $mode eq 'MAIL' || $mode eq 'ALL' ){
+			if( $mailPreparing == 0 ) {
+				# initilize mail
+				$mailPreparingTime = $utc_t;
+				$mailPreparing = 1;
+				$message = "UdpProtect\n\n";
+				$currDate = &getTime();
+				$message .= "Data Detection: $currDate UTC\n";
+				$message .= "Blocking Bound: $sogliaEvento\n";
+				$message .= "Redemption Bound: $sogliaRedenzione\n";
+				$message .= "Range (sec): $intervalloEvento\n\n";
+			}
+			$message .= "IP Source: $bad_ip_source\t";
+			$message .= "Requests: $n_requests\t";
+			$message .= "Event Date: $logDay $logMonth $hours:$minutes:$seconds UTC\n";
+		}
+	}
+	if( $mailPreparing == 1 && ($utc_t - $mailPreparingTime) >= $freqEmail ) {
+		# loading emails
+		@emails = qx { cat $fileEmails };
+		foreach $email( @emails ){
+			print "Send email to $email\n";
+			print "Message:\n$message\n";
+			&sendmail( "udpdetective\@unical.it", $email, "Detected TCP Port Scanning", $message );
+		}
+		if ( $mode eq 'ALL' ) {
+			&sendlog( $fileLog, "UdpProtect sent an email notification" );
+		}
+		$mailPreparingTime = 0;
+		$mailPreparing = 0;
+		$message = "";
+	}
+
+	# Refresh ip blocked's file
+	if( $modified_blocked < $last_modify ) {
+		$modified_blocked = $last_modify;
+		open(IPBLOCK, ">$fileBlocked");
+		while (($k, $v) = each(%ip_blocked)){
+			#print "SCRIVO SUL FILE: $k $time_blocked{$k}\n";	
+			print ">";
+			print IPBLOCK "$k $time_blocked{$k}\n";
+		}
+		close(IPBLOCK);
+	}
+
+	# Reset data's structure
+	$bad_ip_source = ''; 
+	$n_requests = 0; 
+	$time_requests = 0; 
+}

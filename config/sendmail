@@ -1,0 +1,70 @@
+#!/usr/bin/perl
+
+# Copyright (C) 2010 Andrea Martire
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later
+# version.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+# details.
+#
+# You should have received a copy of the GNU General Public License along with
+# this program; if not, write to the Free Software Foundation, Inc., 51
+# Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+
+use Net::SMTP;
+
+sub sendmail
+{
+	$email_source = $_[0];
+	$email_dest = $_[1];
+	$subject = $_[2];
+	$message = $_[3];
+	
+	$namefileConf = "/etc/aLid/aLid.conf";
+
+	@fileConf = qx{ cat $namefileConf | grep MAIL_SERVER };
+
+	foreach $line ( @fileConf ) { 
+		#print "RIGA $line";
+		if ( $line =~ /MAIL_SERVER(\s|\t)*=(\s|\t)*(.*)(\s|\t)*/ ) {
+			$mail_server = $3;
+		}
+	}
+
+	$smtp = Net::SMTP->new( Host => $mail_server,
+					        Hello => 'client',
+					        Timeout => 10,
+					        Debug   => 0,
+							);
+
+	die "Couldn't connect to server $mail_server." unless $smtp;
+	#print "--- Server connection opened ---\n";
+
+	#$USERNAME = "aWRzcGVybA==";
+	#$PASSWORD = "dW5pY2FsaWRz";
+
+	#$smtp->auth ( $USERNAME, $PASSWORD ) or die "Could not authenticate $!";
+	
+	if ( !$smtp->mail( $email_source ) ) {
+		print "sender not accepted\n";
+		exit 1;
+	}
+
+	if (!$smtp->to( $email_dest ) ) {
+		print "address not accepted\n";
+		exit 1;
+	}
+
+	$smtp->data();
+	$smtp->datasend("Subject: $subject\n");
+	$smtp->datasend("\n");
+	$smtp->datasend("$message\n");
+	$smtp->dataend();
+	$smtp->quit;
+}
+
+1;

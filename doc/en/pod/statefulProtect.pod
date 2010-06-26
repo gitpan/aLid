@@ -1,0 +1,181 @@
+=head1 NAME
+
+statefulProtect - Parametric script used for monitor stateful's event
+
+=head1 SYNOPSIS
+
+statefulProtect EVT_NAME RANGE EVT_BOUND RED_BOUND FREQ_EMAIL ALLOWED_FILE NOTIFY FILTER EVT_LIST
+
+=head1 DESCRIPTION
+
+Used for specifies rule with kind STATEFUL_FILTER specified in configuration's file /etc/aLid/aLid.conf. Packet's detection happen through packet's analysis (described in log's file). It allows to intercept events identified by more patterns in sequence:
+
+
+Es. Three way handshake. TCP protocol at beginning of comunication between two hosts want a particular packet's exchange:
+
+=over 8
+
+	PC1 ---	SYN --> PC2
+	PC1 <--	SYN ACK -- PC2
+	PC1 --- ACK --> PC2
+
+=back
+
+If you want describe a filter that intercept this event you needs to define regular expression's list and a target's list. Responsible ip, in this case, is host that begin comunication; in first and third packet it is the source ip(), while in the second packet it is the destination ip(O).
+
+=over 8
+
+	EXPRESSION=RES=\w+\sSYN\sURGP	 	 TARGET=I
+	EXPRESSION=RES=\w+\sACK\sSYN\sURGP	 TARGET=O
+	EXPRESSION=RES=\w+\sACK\sURGP	 	 TARGET=I
+
+=back
+
+=head1 OPTIONS
+
+=over 8
+
+=item EVT_NAME
+
+It specifics the event's name in which is associated a rule. The name of event allows to indenfy the rule, that send a notific or drop's rule. The name of event is unambiguous in all rules.
+
+=item RANGE
+
+It is the value, in seconds, of the temporal window to analyze. If N is the value of range, the temporal window to analyze is [ NOW - N , NOW ].
+
+=item EVT_BOUND
+
+It's the maximun number of times that the found event can verifies inside of temporal window(RANGE). Source ip, findable on log file, is considered responsible. At the overcoming of threshold, depending on configuration, can block source ip or simply notify what is happened. If an ip is blocked, there is also a mark of the moment in which it happens with reference to universal time (UTC) in seconds. 
+
+=item RED_BOUND
+
+It is the number of seconds in which an blocked ip can't communicate through machine where is installed the program. When the redemption's source is reached blocked ip is unlocked. The overcoming is calculated in the following way:
+
+	IF ( NOW - BLOCKING_TIME > RED_BOUNG ) 
+		UNLOCK BLOCKED IP 
+	ELSE
+		BLOCKED IP REMAINS BLOCKED
+
+
+=item FREQ_EMAIL
+
+It specifics the attendance of send of notifics mail in seconds. It's optional and subordinate at the presence of options MAIL or LOG.
+
+=item ALLOWED_FILE
+
+It is file's path where are listed allowed ip. If is detected an event with ip present in ALLOWED_FILE so event is ignored. File must respect following syntattic rule: every rule must contains only an ip.
+
+=item NOTIFY
+There are 4 kinds of notific option: MAIL, LOG, ALL, NOTHING.
+
+=over 8
+
+=item MAIL
+
+Send a notific email to alla addresses specified on file /etc/aLid/email.conf
+
+=item LOG
+
+Allow to write a line on log file of application.
+
+=item ALL
+
+Include both notify's typologies MAIL e LOG.
+
+=item NOTHING
+
+No nothification
+
+=back
+
+=item FILTER
+
+It specifics the policy to adopt considering ip detected. Options accepted are:  B<DROP> and B<NODROP>.
+
+=over 8
+
+=item DROP
+
+It block detected ip in the firewall applying a specific rule.
+
+=item NODROP
+
+It doesn't execute a rule of drop in the firewall.
+
+=back
+
+=item EVT_LIST
+
+List of monitored events that made up a stateful filter. Must respect following syntax:
+	
+EXPR_REG_1 TARGET_1 EXPR_REG_2 TARGET_2 ... EXPR_REG_N TARGET_N
+
+=over 8
+
+=item EXPR_REG
+
+It is a filter's sub-evento. Sub-events must match in sequence.
+	
+=item TARGET
+
+Describes the position, in log's line, of responsible's host of event.
+
+=back
+
+=back
+
+=head1 NOTES
+
+Script reads of input file indicated in the rule through stream <STDIN>.
+
+=head1 EXAMPLES
+
+Configuration's example:
+
+statefulProtect THREE_WAY_HANDSHAKE 10 5 7 7 /etc/aLid/ip_allowed_THREE_WAY_HANDSHAKE log drop		FILE_INPUT=/var/log/iptables.log
+
+=over 8
+
+EXPRESSION=RES=\w+\sSYN\sURGP	 	  TARGET=I
+EXPRESSION=RES=\w+\sACK\sSYN\sURGP	  TARGET=O
+EXPRESSION=RES=\w+\sACK\sURGP	 	  TARGET=I
+
+=back
+
+It executes script with THREE_WAY_HANDSHAKE as event name, using a range of 10 seconds, 5 maximum attempts in temporal window, 7 seconds as redemption threshold, 7 seconds is mail's frequency, ip_allowed_THREE_WAY_HANDSHAKE is the name of file used to specified immunes ip at event, all is notific's typology and drop is the kind of filter. FILE_INPUT is a log's file.
+
+=head1 FILES
+
+=over 8
+
+=item B</etc/aLid/aLid.conf> 
+
+Configuration's file of the application.
+
+=back
+
+=head1 REQUIREMENT
+
+=over 8
+
+=item B<DateTime> 
+
+DateTime - Perl Library of cpan community
+
+=back
+
+=head1 SEE ALSO
+
+B<sharedTail, aLid, aLid.conf>
+
+=head1 AUTHOR
+
+Andrea Martire (andreamartire@gmail.com)
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright © 2010 Andrea Martire <andreamartire@gmail.com>. 
+License  GPLv3+:  GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.
+This  is  free  software:  you  are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+

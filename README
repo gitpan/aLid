@@ -1,0 +1,39 @@
+aLid 1.0 - Software for Automatic Intrusion Detection and Filterting
+
+== Installation ==
+
+For install 'aLid' you need to enter in a directory where is present the file 'install'. 
+$ cd /aLid
+
+You should change execution rights
+# chmod a+x install
+
+Execute the file
+# ./install
+
+The installation is completed.
+
+== Configuration ==
+
+For configure aLids you must modify following files:
+
+/etc/aLid/aLid.conf		- General configuration file
+/etc/aLid/email.conf	- Email's list for notifications
+
+== Documentation ==
+
+Documentation is available through man command for following scripts:
+
+aLid, aLid.conf, sharedTail, arpCheck, arpProtect, eventProtect, statefulProtect,
+synProtect, udpProtect, xmasProtect, finProtect, nullProtect.
+
+== AUTHOR ==
+
+Andrea Martire (andreamartire@gmail.com)
+
+== COPYRIGHT AND LICENSE ==
+
+Copyright © 2010 Andrea Martire <andreamartire@gmail.com>. 
+License  GPLv3+:  GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.
+This  is  free  software:  you  are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.

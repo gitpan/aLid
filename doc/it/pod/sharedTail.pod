@@ -1,0 +1,63 @@
+=head1 NAME
+
+sharedTail - Script che permette la lettura condivisa su file di testo
+
+=head1 SYNOPSIS
+
+B<sharedTail FILE_INPUT [DESCRITTORE_1, DESCRITTORE_2, ... , DESCRITTORE_N]>
+
+=head1 DESCRIPTION
+
+B<sharedTail> permette di ottimizzare la lettura da file. E' stato scritto specificatamente per aLid. L'applicazione infatti, basandosi su letture da file di log, effettua numerose letture su disco; senza l'applicazione di ottimizzazioni nella lettura succede che all'aumentare dei file richiesti, aumenta di molto anche il tempo di elaborazione (a cause delle letture ripetute), rendendo di fatto inutile l'analisi in tempo reale dei file. Il programma riceve il file da cui leggere e la lista degli stream ai quali passare le righe letta. In questo modo, sharedTail legge una sola volta la riga sul file e poi la passa ad ogni script richiedente.
+
+Il meccanismo di lettura condivisa, e quindi l'invocazione di sharedTail e' del tutto trasparente all'utente che usa aLid. Al fine di definire velocemente le lettura condivise richieste bisogna configurare correttamente il file /etc/aLid/aLid.conf.
+
+=head1 OPTIONS
+
+=over 8
+
+=item B<FILE_INPUT>
+
+Path al file di input sul quale si vuole utilizzare la lettura condivisa
+
+=item B<DESCRITTORE_*>
+
+Stream di scrittura attraverso il quale sharedTail passa i dati letti da file ai singoli script
+
+=back
+
+=head1 EXAMPLES
+
+=over 8
+
+=item B<sharedTail /var/log/syslog FILE1 FILE2 FILE3 > 
+
+Esegue la lettura condivisa sul file /var/log/syslog e poi passa i dati sugli stream FILE1 FILE2 e FILE3.
+
+=back
+
+=head1 FILES
+
+=over 8
+
+=item B</etc/aLid/aLid.conf> 
+
+File di configurazione dell'applicazione
+
+=back
+
+=head1 SEE ALSO
+
+B<aLid, aLid.conf>
+
+=head1 AUTHOR
+
+Andrea Martire (andreamartire@gmail.com)
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright © 2010 Andrea Martire <andreamartire@gmail.com>. 
+License  GPLv3+:  GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.
+This  is  free  software:  you  are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+

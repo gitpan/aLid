@@ -1,0 +1,136 @@
+=head1 NAME
+
+arpCheck - This program checks 'flip flop' events that arpwatch throws.
+
+=head1 SYNOPSIS
+
+arpCheck RANGE EVT_BOUND RED_BOUND FILE_IP_BLOCKED NOTIFICATION FILTER [MAIL_FREQ] INTERFACE
+
+=head1 DESCRIPTION
+
+It detects 'flip flop' events that arpwatch throws. It's possible to customize application comportment through available options.
+
+=head1 OPTIONS
+
+=over 8
+
+=item B<RANGE>
+
+It's value, in seconds, of temporal window that you would analyze. If N is the range value the temporal window is [ NOW - N , NOW ].
+
+=item B<EVT_BOUND>
+
+It's maximun times number that detected event can occur in temporal window (RANGE). The source ip is liable. Exceeded the threshold, aLid, depending on configuration, can block source ip or notify that happened. If an ip is blocked, is tracked the moment of blocking too with reference to universal time (UTC) in seconds.
+
+=item B<RED_BOUND>
+
+Seconds number where a blocked ip can't comunicate through computer where aLid is installed. When redemption threshold is reached, the blocked ip is unlocked ( redemption ). Exceeding threshold is calculate in followed mode: 
+
+=over 8
+
+IF ( NOW - BLOCKING_TIME > RED_BOUND ) 
+	UNLOCK BLOCKED IP
+ESLE
+	BLOCKED IP BLOCCATO REMAINS BLOCKED
+
+=back
+
+=item B<FILE_IP_BLOCKED>
+
+Path of file that contains informations about ip blocked.
+
+=item B<NOTIFICATION>
+
+Notification tipology. There are 3 kind of options: MAIL, LOG and ALL.
+
+=over 8
+	
+=item MAIL
+
+Allow to send a notication mail to all address specified in thefile /etc/aLid/emails
+
+=item LOG
+
+Allow to write a row in the log file (/etc/aLid/log) of application.
+		
+=item ALL
+
+It's made up of notification B<MAIL> and B<LOG> typology too.
+
+=back
+
+=item B<FILTER>
+
+It's specifics ip detection policy. Opzions accepted are:  B<DROP> and B<NODROP>.
+
+=over 8
+
+=item DROP
+
+Block detected ip in the firewall, with a specific rule.
+
+=item NODROP
+
+It doesn't block detected ip.
+
+=back
+
+=item B<MAIL_FREQ>
+
+Sending frequency of notification mail in seconds. It's optional and it's subject at the presence of options MAIL or LOG.
+
+=item B<INTERFACE>
+
+It specifies interface that arpwatch monitors.
+
+=back
+
+=head1 EXAMPLES
+
+=over 8
+
+=item B<arpCheck 300 2 7 /etc/aLid/ip_blocked_arpcheck all drop 1 eth1> 
+
+range 300 seconds, maximun 2 flip flop, 7 seconds before redemption, ip_blocked_arpcheck is the ip blocked's file, all as notification, mail frequency is one second, eth1 is the interface that arpwatch monitors.
+
+=back
+
+=head1 FILES
+
+=over 8
+
+=item B</etc/aLid/aLid.conf> 
+
+Configuration file of application
+
+=back
+
+=head1 REQUIREMENT
+
+=over 8
+
+=item B<arpwatch> 
+
+Arpwatch - http://www.securityfocus.com/tools/142
+
+=item B<DateTime> 
+
+DateTime - Perl Library of cpan community
+
+=back
+
+=head1 SEE ALSO
+
+B<sharedTail, aLid, aLid.conf>
+
+=head1 AUTHOR
+
+Andrea Martire (andreamartire@gmail.com)
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright © 2010 Andrea Martire <andreamartire@gmail.com>. 
+License  GPLv3+:  GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.
+This  is  free  software:  you  are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+

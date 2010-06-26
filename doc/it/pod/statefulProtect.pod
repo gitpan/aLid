@@ -1,0 +1,191 @@
+=head1 NAME
+
+statefulProtect - Script parametrico usato per monitorare eventi stateful
+
+=head1 SYNOPSIS
+
+B<statefulProtect NOME_EVENTO INTERVALLO SOGLIA_EVT SOGLIA_RED FREQ_EMAIL FILE_CONSENTITI NOTIFICA FILTRO LISTA_EVENTI>
+
+=head1 DESCRIPTION
+
+Utilizzato per applicare le regole del tipo STATEFUL_FILTER specificate nel file di configurazione /etc/aLid/aLid.conf. L'analisi dei pacchetti avviene tramite l'analisi del file di log di iptables. Consente di intercettare eventi identificati da più pattern in sequenza:
+
+Es. Three way handshake
+
+Il protocollo TCP nella fase iniziale della comunicazione fra due host prevede un preciso scambio di pacchetti:
+
+=over 8
+
+PC1 ---	SYN --> PC2 |
+PC1 <--	SYN ACK -- PC2 |
+PC1 --- ACK --> PC2
+
+=back
+
+Per descrivere un filtro che intercetta questo evento bisogna definire le espressioni regolari corrispondenti e il ruolo del ip responsabile dell'evento. L'ip responsabile in questo caso e' l'ip che avvia la sincronizzazione; nel primo e nel terzo pacchetto e' l'ip sorgente (I), mentre nel secondo pacchetto e' il destinatario(O).
+
+=over 8
+
+EXPRESSION=RES=\w+\sSYN\sURGP	 	        	TARGET=I
+EXPRESSION=RES=\w+\sACK\sSYN\sURGP	 			TARGET=O
+EXPRESSION=RES=\w+\sACK\sURGP	 	        	TARGET=I
+
+=back
+
+=head1 OPTIONS
+
+=over 8
+
+=item B<NOME_EVENTO>
+
+Specifica il nome dell'evento a cui viene associata la regola. Il nome dell'evento consente poi di identificare la regola che lancia una notifica o regola di drop. Il nome dell'evento e' univoco in tutte le regole. 
+
+=item B<INTERVALLO>
+
+E' il valore, in secondi, della finestra temporale da analizzare. Sia N il valore dell'intervallo allora la finestra temporale da analizzare e' [ TEMPO_CORRENTE - N , TEMPO_CORRENTE ].
+
+=item B<SOGLIA_EVT>
+
+E' il numero massimo di volte che l'evento rintracciato dall'espressione regolare (ESPRESSIONE_REG) può verificarsi all'interno della finestra temporale (INTERVALLO). L'ip sorgente, rintracciabile nel file in input, viene ritenuto responsabile. Al superamento della soglia aLid, in base alla configurazione, puo' bloccare l'ip sorgente o semplicemente notificare cio' che e' accaduto. Se un'ip viene bloccato, si tiene traccia anche del momento in cui cio' avviene, facendo riferimento al tempo universale (UTC) in secondi. 
+
+=item B<SOGLIA_RED>
+
+E' il numero di secondi nei quali un'ip bloccato non puo' comunicare attraverso la macchina dove e' installato aLid. Quando la soglia di redenzione viene raggiunta l'ip bloccato viene sbloccato ( redenzione ). Il superamento e' calcolato nel seguente modo: 
+
+SE ( TEMPO_CORRENTE - TEMPO_BLOCCO > SOGLIA_RED ) 
+	SBLOCCA L'IP BLOCCATO
+ALTRIMENTI
+	L'IP BLOCCATO RESTA BLOCCATO
+
+=item B<FREQ_EMAIL>
+
+Specifica la frequenza di invio della mail di notifica in secondi. E' opzionale ed e' subordinata alla presenza delle opzioni MAIL o LOG.
+
+=item B<FILE_CONSENTITI>
+
+E' il path al file che contiene la lista degli ip immuni all'evento indicato dalla regola. Se viene rilevato un evento con un ip presente nel file FILE_CONSENTITI l'evento viene ignorato. Il file deve rispettare la seguente regola sintattica: ogni riga del file deve contenere solo un ip.
+
+=item B<NOTIFICA>
+
+La tipologia di notifica adottata dalla regola. Sono previste 3 tipologia di opzioni: MAIL, LOG, ALL.
+
+=over 8
+
+=item B<MAIL>
+
+Consente di inviare una mail di notifica a tutti gli indirizzi specificati nel file /etc/aLid/emails
+
+=item B<LOG>
+
+Consente di scrivere una riga nel file di log (/etc/aLid/log) dell'applicazione.
+	
+=item B<ALL>
+
+Comprende entrambe le tipologie di notifiche B<MAIL> e B<LOG>.
+
+=back
+
+=item B<FILTER>
+
+Specifica la politica da adottare riguardo gli ip rilevati dalla regola. Le opzioni accettate sono:  B<DROP> e B<NODROP>.
+
+=over 8
+
+=item B<DROP>
+
+Blocca l'ip rilevato nel firewall, applicando un'apposita regola.
+
+=item B<NODROP>
+
+Non esegue nessuna regola di drop nel firewall.
+
+=back
+
+=item B<LISTA_EVENTI>
+
+Definisce la lista degli eventi monitorati dal filtro stateful. Nella definizione bisogna rispettare la seguente sintassi:
+
+=over 8
+
+=item B<EXPR_REG_1 TARGET_1 EXPR_REG_2 TARGET_2 ... EXPR_REG_N TARGET_N>
+
+
+=over 8
+
+=item B<EXPR_REG>
+
+Rappresenta un sotto-evento del filtro. I sotto-eventi devono verificarsi in sequenza.
+	
+=item B<TARGET>
+
+Indica la posizione, nella linea di log, dell'host responsabile dell'evento stateful.
+
+=back
+
+=back
+
+=back
+
+=head1 NOTES
+
+Lo script legge riceve le linee del file di input indicato nella regola attraverso lo stream <STDIN>.
+
+=head1 EXAMPLES
+
+Esempio di configurazione:
+
+B<statefulProtect THREE_WAY_HANDSHAKE 10 5 7 7 /etc/aLid/ip_allowed_THREE_WAY_HANDSHAKE log drop		FILE_INPUT=/var/log/iptables.log>
+
+=over 8
+
+B<EXPRESSION=RES=\w+\sSYN\sURGP	 	        	TARGET=I
+EXPRESSION=RES=\w+\sACK\sSYN\sURGP	 			TARGET=O
+EXPRESSION=RES=\w+\sACK\sURGP	 	        	TARGET=I>
+
+=back
+ 
+Esegue lo script con THREE_WAY_HANDSHAKE come nome evento, utilizzando un intervallo di 10 secondi, 5 tentativi massimi nella finestra temporale, 7 secondi come soglia di redenzione, 7 secondi e' la frequenza delle mail, ip_allowed_THREE_WAY_HANDSHAKE e' il nome del file utilizzato per specificare gli ip immuni all'evento, all e' la tipologia di notifica e drop il tipo di filtro; FILE_INPUT e' il file di log da cui ricavare le informazioni
+
+=head1 FILES
+
+=over 8
+
+=item B</etc/aLid/aLid.conf> 
+
+File di configurazione dell'applicazione
+
+=back
+
+=head1 REQUIREMENT
+
+=over 8
+
+item= B<arpwatch> 
+
+Arpwatch - http://www.securityfocus.com/tools/142
+
+=back
+
+=over 8
+
+item= B<DateTime> 
+
+DateTime - Perl Library of cpan community
+
+=back
+
+=head1 SEE ALSO
+
+B<sharedTail, aLid, aLid.conf>
+
+=head1 AUTHOR
+
+Andrea Martire (andreamartire@gmail.com)
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright © 2010 Andrea Martire <andreamartire@gmail.com>. 
+License  GPLv3+:  GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.
+This  is  free  software:  you  are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+

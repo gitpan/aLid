@@ -1,0 +1,58 @@
+=head1 NAME
+
+sharedTail - Script that allows shared reading on input files.
+
+=head1 SYNOPSIS
+
+sharedTail FILE_INPUT [DESCR_1, DESCR_2, ... , DESCR_N]
+
+=head1 DESCRIPTION
+
+B<sharedTail> allows to optimize file's reading. The application, based on reading of log file, make many reading on disk; without optimization in reading happens that is increased time of elaboration, making useless the analysis of file. The program receives input file's path and list of streams in which pass read lines. In this way, sharedtail reads once a line from file, and later sends the line to each interested script.
+
+Shared reading's mechanism, and so sharedTail's invocations is clear to user who uses aLid. At purpose of define quickly shared reading's requests you must configure correctly file /etc/aLid/aLid.conf.
+
+=head1 OPTIONS
+
+=over 8
+
+=item B<FILE_INPUT>
+
+Path to file in which you want to use share reading.
+
+=item B<DESCR_*>
+
+Stream of writing in which sharedtail passes erad data to single script.
+
+=back
+
+=head1 EXAMPLES
+
+=over 8
+
+=item B<sharedTail /var/log/syslog FILE1 FILE2 FILE3 > 
+
+It execute shared reading on file /var/log/syslog and after passes data in stream FILE1 FILE2 and FILE3.
+
+=back
+
+=head1 FILES
+
+B</etc/aLid/aLid.conf> 
+	Configuration's file of the application.
+
+=head1 SEE ALSO
+
+B<aLid, aLid.conf>
+
+=head1 AUTHOR
+
+Andrea Martire (andreamartire@gmail.com)
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright © 2010 Andrea Martire <andreamartire@gmail.com>. 
+License  GPLv3+:  GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.
+This  is  free  software:  you  are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+

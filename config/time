@@ -1,0 +1,40 @@
+#!/usr/bin/perl
+
+# Copyright (C) 2010 Andrea Martire
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later
+# version.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+# details.
+#
+# You should have received a copy of the GNU General Public License along with
+# this program; if not, write to the Free Software Foundation, Inc., 51
+# Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+
+sub month_index {
+	$mese = $_[0];
+
+	$month_offset{"Gen"} = 0;	$month_offset{"Feb"} = 1;	$month_offset{"Mar"} = 2;	$month_offset{"Apr"} = 3;
+	$month_offset{"Mag"} = 4;	$month_offset{"Giu"} = 5;	$month_offset{"Lug"} = 6;	$month_offset{"Ago"} = 7;
+	$month_offset{"Set"} = 8;	$month_offset{"Ott"} = 9;	$month_offset{"Nov"} = 10;	$month_offset{"Dic"} = 11;
+
+	$month_offset{"Jan"} = 0;	
+	$month_offset{"May"} = 4;	$month_offset{"Jun"} = 5;	$month_offset{"Jul"} = 6;	$month_offset{"Aug"} = 7;
+	$month_offset{"Sep"} = 8;	$month_offset{"Oct"} = 9;	$month_offset{"Dec"} = 11;
+
+	$month_offset{"gen"} = 0;	$month_offset{"feb"} = 1;	$month_offset{"mar"} = 2;	$month_offset{"apr"} = 3;
+	$month_offset{"mag"} = 4;	$month_offset{"giu"} = 5;	$month_offset{"lug"} = 6;	$month_offset{"ago"} = 7;
+	$month_offset{"set"} = 8;	$month_offset{"ott"} = 9;	$month_offset{"nov"} = 10;	$month_offset{"dic"} = 11;
+
+	$month_offset{"jan"} = 0;	
+	$month_offset{"may"} = 4;	$month_offset{"jun"} = 5;	$month_offset{"jul"} = 6;	$month_offset{"aug"} = 7;
+	$month_offset{"sep"} = 8;	$month_offset{"oct"} = 9;	$month_offset{"dec"} = 11;
+
+	return $month_offset{$mese} + 1;
+}
+
+1;

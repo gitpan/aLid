@@ -1,0 +1,128 @@
+=head1 NAME
+
+B<nullProtect - Script used for intecept attempts of port scanning by Null scan.>
+
+=head1 SYNOPSIS
+
+B<nullProtect RANGE EVT_BOUND RED_BOUND FILE_IP_BLOCKED NOTIFY FILTER [FREQ_EMAIL] >
+
+=head1 DESCRIPTION
+
+It is used for intecept attempts of port scanning that used the tecnic NULL Scan. The attacker must send many package TCP with purpose of obtain informations about ports. Each package hasn't enabled flags. When is reached a particular threshold fixed in the configuration, the source ip is blocked because it's responsable of port scanning.
+
+=head1 OPTIONS
+
+=over 8
+
+=item B<RANGE> 
+
+It is the value, in seconds, of the temporal window to analyze. If N is the value of range, the temporal window to analyze is [ NOW - N , NOW ].
+
+=item B<EVT_BOUND> 
+
+It's the maximun number of times that the found event can verifies inside of temporal window(RANGE). Source ip, findable on log file, is considered responsible. At the overcoming of threshold, depending on configuration, can block source ip or simply notify what is happened. If an ip is blocked, there is also a mark of the moment in which it happens with reference to universal time (UTC) in seconds.
+
+=item B<RED_BOUND> 
+
+It is the number of seconds in which an blocked ip can't communicate through machine where is installed the program. When the redemption's source is reached blocked ip is unlocked. The overcoming is calculated in the following way:
+
+IF ( NOW - BLOCKING_TIME > RED_BOUNG ) 
+	UNLOCK BLOCKED IP 
+ELSE
+	BLOCKED IP REMAINS BLOCKED
+
+=item B<FILE_IP_BLOCKED> 
+
+It is used to define a complete path to file, that contains informations about blocked ip.
+
+=item B<NOTIFY> 
+
+There are 4 kinds of notific option: MAIL, LOG, ALL, NOTHING.
+
+=over 8
+
+=item B<MAIL>
+
+Send a notific email to alla addresses specified on file /etc/aLid/email.conf
+
+=item B<LOG>
+
+Allow to write a line on log file of application.
+	
+=item B<ALL>
+
+Include both notify's typologies B<MAIL> e B<LOG>.
+
+=item B<NOTHING>
+
+No nothification.
+
+=back
+
+=item B<FILTER>
+
+It specifics the policy to adopt considering ip detected. Options accepted are:  B<DROP> and B<NODROP>.
+
+=over 8
+
+=item B<DROP>
+
+It block detected ip in the firewall applying a specific rule.
+
+=item B<NODROP>
+
+It doesn't execute a rule of drop in the firewall.
+
+=back
+	
+=item B<FREQ_EMAIL>
+
+It specifics the attendance of send of notifics mail in seconds. It's optional and subordinate at the presence of options MAIL or LOG.
+
+=back
+
+=head1 EXAMPLES
+
+=over 8
+
+=item B<nullProtect 10 5 7 /etc/aLid/ip_blocked_nullprotect all drop 60> 
+
+It executes script using a range of 10 seconds, 5 maximun attempts in the temporal window, 7 seconds as redention's threshold. Ip_blocked_nullprotect is the name of the file utilized, all is the notifics typology, drop is kind of filter, and 60 is mail's frequency.
+
+=back
+
+=head1 FILES
+
+=over 8
+
+=item B</etc/aLid/aLid.conf> 
+
+Configuration's file of the application.
+
+=back
+
+=head1 REQUIREMENT
+
+=over 8
+
+=item B<DateTime> 
+
+DateTime - Perl Library of cpan community
+
+=back
+
+=head1 SEE ALSO
+
+B<sharedTail, aLid, aLid.conf>
+
+=head1 AUTHOR
+
+Andrea Martire (andreamartire@gmail.com)
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright © 2010 Andrea Martire <andreamartire@gmail.com>. 
+License  GPLv3+:  GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.
+This  is  free  software:  you  are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+

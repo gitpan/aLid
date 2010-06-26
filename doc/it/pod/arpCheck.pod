@@ -1,0 +1,116 @@
+=head1 NAME
+
+arpCheck - Controlla gli eventi 'flip flop' lanciati da arpwatch
+
+=head1 SYNOPSIS
+
+arpCheck INTERVALLO SOGLIA_EVT SOGLIA_RED FILE_IP_BLOCCATI NOTIFICA FILTRO [FREQ_MAIL] INTERFACCIA
+
+=head1 DESCRIPTION
+
+Intercetta gli eventi 'flip flop' lanciati da arpwatch. E' possibile personalizzare il comportamento dell'applicazione tramite le opzioni che mette a disposizione.
+
+=head1 OPTIONS
+
+=over 8
+
+=item B<INTERVALLO>
+
+E' il valore, in secondii, della finestra temporale da analizzare. Sia N il valore dell'intervallo allora la finestra temporale da analizzare e' [ TEMPO_CORRENTE - N , TEMPO_CORRENTE ].
+
+=item B<SOGLIA_EVT>
+
+E' il numero massimo di volte che l'evento rintracciato può verificarsi all'interno della finestra temporale (INTERVALLO). L'ip sorgente, rintracciabile nel file di log, viene ritenuto responsabile. Al superamento della soglia aLid, in base alla configurazione, puo' bloccare l'ip sorgente o semplicemente notificare cio' che e' accaduto. Se un'ip viene bloccato, si tiene traccia anche del momento in cui cio' avviene, facendo riferimento al tempo universale (UTC) in secondi.
+
+=item B<SOGLIA_RED>
+
+E' il numero di secondi nei quali un ip bloccato non puo' comunicare attraverso la macchina dove e' installato aLid. Quando la soglia di redenzione viene raggiunta l'ip bloccato viene sbloccato ( redenzione ). Il superamento e' calcolato nel seguente modo: 
+
+	SE ( TEMPO_CORRENTE - TEMPO_BLOCCO > SOGLIA_RED ) 
+		SBLOCCA L'IP BLOCCATO
+	ALTRIMENTI
+		L'IP BLOCCATO RESTA BLOCCATO
+
+=item B<FILE_IP_BLOCCATI>
+
+Serve per definire il path completo al file che contiene le informazioni sugli ip bloccati.
+
+=item B<NOTIFICA>
+
+La tipologia di notifica adottata dallo script. Sono previste 3 tipologia di opzioni: MAIL, LOG, ALL.
+
+=over 8
+	
+=item B<MAIL>
+
+Consente di inviare una mail di notifica a tutti gli indirizzi specificati nel file /etc/aLid/emails
+
+=item B<LOG>
+
+Consente di scrivere una riga nel file di log (/etc/aLid/log) dell'applicazione.
+	
+=item B<ALL>
+
+Comprende entrambe le tipologie di notifiche B<MAIL> e B<LOG>.
+
+=back
+
+=item B<FILTRO>
+
+Specifica la politica da adottare riguardo gli ip rilevati. Le opzioni accettate sono:  B<DROP> e B<NODROP>.
+
+=over 8
+
+=item B<DROP>
+
+Blocca l'ip rilevato nel firewall, applicando un'apposita regola.
+
+=item B<NODROP>
+
+Non esegue nessuna regola di drop nel firewall.
+
+=back
+
+=item B<FREQ_MAIL>
+
+Specifica la frequenza di invio della mail di notifica in secondi. E' opzionale ed e' subordinata alla presenza delle opzioni MAIL o LOG.
+
+=item B<INTERFACCIA>
+
+Specifica l'interfaccia che arpwatch va a monitorare.
+
+=back
+
+=head1 EXAMPLES
+
+B<arpCheck 300 2 7 /etc/aLid/ip_blocked_arpcheck all drop 1 eth1> 
+	Intervello 300 secondi, massimo 2 flip flop, 7 secondi prima della redenzione, ip_blocked_arpcheck e' il file degli ip bloccati, all come notifica, la frequenza minima di invio email e' un secondo, eth1 e' l'interfaccia monitorata da arpwatch.
+
+=head1 FILES
+
+B</etc/aLid/aLid.conf> 
+	File di configurazione dell'applicazione
+
+=head1 REQUIREMENT
+
+B<arpwatch> 
+	Arpwatch - http://www.securityfocus.com/tools/142
+
+B<DateTime> 
+	DateTime - Perl Library of cpan community
+
+=head1 SEE ALSO
+
+B<sharedTail, aLid, aLid.conf>
+
+=head1 AUTHOR
+
+Andrea Martire (andreamartire@gmail.com)
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright © 2010 Andrea Martire <andreamartire@gmail.com>. 
+License  GPLv3+:  GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.
+This  is  free  software:  you  are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+

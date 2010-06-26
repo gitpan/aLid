@@ -1,0 +1,80 @@
+#!/usr/bin/perl
+
+# Copyright (C) 2010 Andrea Martire
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later
+# version.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+# details.
+#
+# You should have received a copy of the GNU General Public License along with
+# this program; if not, write to the Free Software Foundation, Inc., 51
+# Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+
+use ExtUtils::Installed;
+
+my $inst    = ExtUtils::Installed->new();
+my @modules = $inst->modules();
+
+foreach $el( @modules ) {
+	if ( $el =~ /DateTime/ ) {
+		$founded = 1;
+	}
+}
+
+if ( $founded != 1 ) {
+	print "You need install DateTime from CPAN\n";
+	exit;
+}
+
+@value = qx{ which arpwatch };
+if ( $value[0] eq '') {
+	print "You need install arpwatch\n";
+	exit;
+}
+
+if ( -d "/etc/aLid" ) {
+	qx{ rm -r /etc/aLid };
+}
+qx{ mkdir /etc/aLid };
+
+qx{ cp -r config/* /etc/aLid };
+
+qx{ chmod a+x /etc/aLid/sendmail };
+qx{ chmod a+x /etc/aLid/sendlog };
+qx{ chmod a+x /etc/aLid/time };
+qx{ chmod a+x /etc/aLid/script/eventProtect };
+qx{ chmod a+x /etc/aLid/script/synProtect };
+qx{ chmod a+x /etc/aLid/script/udpProtect };
+qx{ chmod a+x /etc/aLid/script/finProtect };
+qx{ chmod a+x /etc/aLid/script/xmasProtect };
+qx{ chmod a+x /etc/aLid/script/nullProtect };
+qx{ chmod a+x /etc/aLid/script/arpProtect };
+qx{ chmod a+x /etc/aLid/script/arpCheck };
+
+if ( -e "/usr/bin/aLid" ) {
+	qx{ rm /usr/bin/aLid };
+	qx{ rm /usr/bin/aLidStop };
+	qx{ rm /usr/bin/sharedTail };
+}
+
+qx{ cp aLidStop /usr/bin/aLidStop };
+qx{ cp aLid /usr/bin/aLid };
+qx{ cp sharedTail /usr/bin/sharedTail };
+
+qx{ chmod a+x /usr/bin/aLidStop };
+qx{ chmod a+x /usr/bin/aLid };
+qx{ chmod a+x /usr/bin/sharedTail };
+
+qx{ cp -r doc/it/man/* /usr/share/man/it/man1 };
+qx{ cp -r doc/en/man/* /usr/share/man/man1 };
+#qx{ cp S20aLid /etc/rc2.d/S20aLid };
+#qx{ cp S20aLid /etc/rc3.d/S20aLid };
+#qx{ cp S20aLid /etc/rc4.d/S20aLid };
+#qx{ cp S20aLid /etc/rc5.d/S20aLid };
+
+#qx{ mandb };

@@ -1,0 +1,87 @@
+=head1 NAME
+
+aLid - Automatic Logging Intrusion Detection system 
+
+=head1 SYNOPSIS
+
+aLid [OPTIONS]
+
+=head1 DESCRIPTION
+
+aLid is a system of Automatic Intrusion Detection and Filtering. It is written in perl, and it is based on the analysis of file log. It allows to entercept attempts of port scanning from attackers and it operates filtering traffic. Moreover it is possible to define a lis of rules and filters, in which aLid will adapt his behaviour. if you would an effective programm, it must installed in a firewall, because it can insert filter's rules too.
+
+=head1 OPTIONS
+
+=over 8
+
+=item B<-r> 
+
+It allows only execution of rules specified in configuration's file. (RULE)
+
+=item B<-s> 
+
+It allows only execution of personalized script of user (SCRIPT)
+
+=item B<-f> 
+
+It allows only execution of stateful filter (STATEFUL_SCRIPT)
+
+=item B<-a> 
+
+It executes all options specified in configuration's file /etc/aLid/aLid.conf. It's default option if you run the program without options.
+
+=item B<-h> 
+
+It visualizes current handbook
+
+=back
+
+=head1 EXAMPLES
+
+=over 8
+
+=item B<aLid -rs> 
+
+It allows the execution of rules and script.
+
+=back
+
+=head1 FILES
+
+=over 8
+
+=item B</etc/aLid/aLid.conf> 
+
+Configuration file of the application.
+
+=back
+
+=head1 REQUIREMENT
+
+=over 8
+
+=item B<arpwatch> 
+
+Arpwatch - http://www.securityfocus.com/tools/142
+
+=item B<DateTime> 
+
+DateTime - Perl Library of cpan community
+
+=back
+
+=head1 SEE ALSO
+
+B<sharedTail, aLid.conf>
+
+=head1 AUTHOR
+
+Andrea Martire (andreamartire@gmail.com)
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright © 2010 Andrea Martire <andreamartire@gmail.com>. 
+License  GPLv3+:  GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.
+This  is  free  software:  you  are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+

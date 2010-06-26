@@ -1,0 +1,235 @@
+=head1 NAME
+
+B<aLid.conf> File of aLid's Configuration
+
+=head1 SYNOPSIS
+
+aLid [OPTIONS]
+
+=head1 DESCRIPTION
+
+It allow to configure aLid. There are four kinds of options: SCRIPT, OTHER_SCRIPT, RULE and STATEFUL_FILTER.
+
+=over 8
+
+OPTION=SPECIFICS
+
+=back
+
+This form is followed of specifications pertinents to option indicate. Options SCRIPT, OTHER_SCRIPT and RULE are describer in a only line. 
+
+=head1 OPTIONS
+
+=over 8
+
+=item B<MAIL_SERVER>
+
+It is the ip address of server, used to send notific's email. It is advisable to insert MX server of own subnet. Otherwise if it specifies any server MX, nedds to modify present script /etc/aLid/sendmail with purpose of consent the authentication.
+
+=item B<SCRIPT> 
+
+Each option of script type describes th execution of a script at the beginning of application. Scripts invoked by this option are called in the same way in which they are specified. Option script must respect the following syntax: 
+
+=over 8
+
+	SCRIPT=FILENAME [ARGV] [INPUT_FILE=FILENAME2]
+
+=back
+
+If script read from particular file in input, for use potentialities of share's reading, is opportune to specific files by the option.
+
+=over 8
+
+	INPUT_FILE=FILENAME
+
+=back
+
+Another shrewdness to observ on scripts is to define reading ( to input file ) to <STDIN>; in this way script B<sharedTail> may send file's line to applicant script.
+
+=item B<STATEFUL_FILTER> 
+
+More info: see statefulProtect
+
+=item B<RULE> 
+
+Each option of kind RULE describes a tule that will be observed by aLid. A rule is a set of informations that allow to aLid to intercept a particular event in log's file and allow to take precautions. Each rule has the following syntax:
+
+=over 8
+					
+RULE=EVT_NAME REG_EXPRESSION RANGE EVT_BOUND RED_BOUND ALLOWED_FILE NOTIFY FILTER [FREQ_EMAIL] INPUT_FILE 
+
+=over 8
+
+=item EVT_NAME
+
+It specifics the event's name in which is associated a rule. The name of event allows to indenfy the rule, that send a notific or drop's rule. The name of event is unambiguous in all rules.
+
+=item REG_EXPRESSION
+
+A regular expression allows to verify the presence of specified character inside of each line of file in input. When a file's line matches the regular expression so it is considered as presentation of monitored event. 
+
+=item RANGE
+
+It is the value, in seconds, of the temporal window to analyze. If N is the value of range, the temporal window to analyze is [ NOW - N , NOW ].
+
+=item EVT_BOUND
+
+It's the maximun number of times that the found event can verifies inside of temporal window(RANGE). Source ip, findable on log file, is considered responsible. At the overcoming of threshold, depending on configuration, can block source ip or simply notify what is happened. If an ip is blocked, there is also a mark of the moment in which it happens with reference to universal time (UTC) in seconds. 
+
+=item RED_BOUND
+
+It is the number of seconds in which an blocked ip can't communicate through machine where is installed the program. When the redemption's source is reached blocked ip is unlocked. The overcoming is calculated in the following way:
+
+=over 8
+
+IF ( NOW - BLOCKING_TIME > RED_BOUNG ) 
+	UNLOCK BLOCKED IP 
+ELSE
+	BLOCKED IP REMAINS BLOCKED
+
+=back
+
+=item ALLOWED_FILE
+
+It is file's path where are listed allowed ip.
+
+=item NOTIFY
+
+There are 4 kinds of notific option: MAIL, LOG, ALL, NOTHING.
+		
+=over 8
+
+=item MAIL
+
+Send a notific email to alla addresses specified on file /etc/aLid/email.conf
+
+=item LOG
+
+Allow to write a line on log file of application.
+
+=item ALL
+
+Include both notify's typologies MAIL e LOG.
+
+=item NOTHING
+
+No nothification
+
+=back
+	
+=item FILTER
+
+It specifics the policy to adopt considering ip detected. Options accepted are:  B<DROP> and B<NODROP>.
+
+=over 8
+
+=item DROP
+
+It block detected ip in the firewall applying a specific rule.
+
+=item NODROP
+
+It doesn't execute a rule of drop in the firewall.
+
+=back
+			
+=item [FREQ_EMAIL]
+
+It specifics the attendance of send of notifics mail in seconds. It's optional and subordinate at the presence of options MAIL or LOG.
+
+=item INPUT_FILE
+
+Input file where rule is applied. Needs to respect following syntax:
+
+=over 8				
+
+INPUT_FILE=FILE_PATH
+
+=back
+
+where FILE_PATH is file's path in which are applied rule.
+
+=back
+
+=back
+
+=back
+
+=head1 IMPLEMENTATION
+
+Each rule is applied by esecution of a parametric script:
+
+=over 8
+
+	/var/aLid/script/eventProtect EVT_NAME REG_EXPRESSION RANGE EVT_BOUND RED_BOUND ALLOWED_FILE NOTIFY FILTER [FREQ_EMAIL]
+
+=back
+
+For allow an efficient reading, that is read from file of input, passed by <STDIN> using another script (B<sharedTail>) that allows share's reading on the same file.
+
+=head1 EXAMPLES
+
+An example of file's definition /etc/aLid/aLid.conf
+
+=over 8
+
+MAIL_SERVER = out.virgilio.it
+
+# List of default scripts
+
+SCRIPT=/etc/aLid/script/synProtect 10 5 7 /etc/aLid/ip_blocked_synprotect all drop 1
+
+SCRIPT=/etc/aLid/script/arpProtect all drop FILE_INPUT=/var/lib/arpwatch/arp.dat
+SCRIPT=yes hello > /dev/null																			
+
+RULE=SPAM \sDPT=25\s 5 10 5 7 /etc/aLid/ip_allowed_SPAMMING all drop FILE_INPUT=/var/log/iptables.log
+
+=back
+
+=head1 FILES
+
+=over 8
+
+=item B</etc/aLid/emails.conf>
+
+File in which are specified email's addresses where are send notific's mails.
+
+=item B</etc/aLid/log>
+
+File in which are saved informations relative to detected events by application.
+
+=back 
+
+=head1 REQUIREMENT
+
+=over 8
+
+=item B<arpwatch> 
+
+Arpwatch - http://www.securityfocus.com/tools/142
+
+=item B<DateTime> 
+
+DateTime - Perl Library of cpan community
+
+=item B<iptables> 
+
+iptables - Stateful firewall
+
+=back
+
+=head1 SEE ALSO
+
+aLid, eventProtect, sharedTail
+
+=head1 AUTHOR
+
+Andrea Martire (andreamartire@gmail.com)
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright © 2010 Andrea Martire <andreamartire@gmail.com>. 
+License  GPLv3+:  GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.
+This  is  free  software:  you  are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+

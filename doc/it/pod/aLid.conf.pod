@@ -1,0 +1,211 @@
+=head1 NAME
+
+B<aLid.conf> File di configurazione di aLid 
+
+=head1 SYNOPSIS
+
+aLid [OPTIONS]
+
+=head1 DESCRIPTION
+
+Permette di configurare aLid. E' possibile inserire 3 tipologie di opzioni: SCRIPT, RULE. Ogni opzione e' descritta nel file nella seguente forma:
+	
+	B<OPZIONE=SPECIFICHE>
+
+E' seguita dalle specifiche relative all'opzione indicata. Le opzioni SCRIPT e RULE sono descritte in una sola riga.
+
+=head1 OPTIONS
+
+=over 8
+
+=item MAIL_SERVER
+
+E' l'indirizzo ip del server utilizzato per l'invio delle email di notifica. Si consiglia di inserire il server MX della propria sottorete di appartenza, altrimenti se si specifica un qualsiasi server MX bisogna modificare lo script presente in /etc/aLid/sendmail al fine di consentire l'autenticazione. 
+
+=item SCRIPT
+
+Ogni opzione di tipo OTHER_SCRIPT descrive l'esecuzione di uno script all'avvio dell'applicazione. Gli script invocati tramite questa opzione sono richiamati esattamente nel modo in cui vengono specificati. Deve rispettare la seguente sintassi:
+
+	B<OTHER_SCRIPT=NOMESCRIPT [ARGV] [INPUT_FILE=NOMEFILE]>
+
+Se gli script leggono da particolari file in input, per sfruttare le potenzialita' della lettura condivisa, e' opportuno specificare i file attraverso l'opzione:
+
+	B<INPUT_FILE=NOMEFILE>
+
+Un'ulteriore accortezza da osservare negli script e' quella di definire le letture ( rivolte al file di input ) verso <STDIN>; in questo modo lo script B<sharedTail> potra' inviare le righe del file di input allo script richiedente.
+
+=item STATEFUL_FILTER 
+
+Per maggiori informazioni guarda statefulProtect
+
+=item RULE
+
+Ogni opzione di tipo RULE descrive una regola che verrà monitorata da aLid. Una regola e' un'insieme di informazioni che consentono a aLid di intercettare un particolare evento nel file di log e di prendere le dovute precauzioni. Ogni regola ha la seguente sintassi:
+
+RULE=NOME_EVENTO ESPRESSIONE_REG INTERVALLO SOGLIA_EVT SOGLIA_RED FILE_CONSENTITI NOTIFICA FILTER [FREQ_EMAIL] INPUT_FILE 
+
+=over 8
+
+=item NOME_EVENTO
+
+Specifica il nome dell'evento a cui viene associata la regola. Il nome dell'evento consente poi di identificare la regola che lancia una notifica o regola di drop. Il nome dell'evento e' univoco in tutte le regole. 
+
+=item ESPRESSIONE_REG
+
+L'espressione regolare consente di verificare la presenza dei caratteri specificati all'interno di ogni riga del file in input. Quando una riga del file verifica l'espressione regolare allora cio' viene considerato come il presentarsi dell'evento monitorato dalla regola. 
+
+=item INTERVALLO
+
+E' il valore, in secondi, della finestra temporale da analizzare. Sia N il valore dell'intervallo allora la finestra temporale da analizzare e' [ TEMPO_CORRENTE - N , TEMPO_CORRENTE ].
+
+=item SOGLIA_EVT
+
+E' il numero massimo di volte che l'evento rintracciato dall'espressione regolare (ESPRESSIONE_REG) può verificarsi all'interno della finestra temporale (INTERVALLO). L'ip sorgente, rintracciabile nel file in input, viene ritenuto responsabile. Al superamento della soglia aLid, in base alla configurazione, puo' bloccare l'ip sorgente o semplicemente notificare cio' che e' accaduto. Se un'ip viene bloccato, si tiene traccia anche del momento in cui cio' avviene, facendo riferimento al tempo universale (UTC) in secondi. 
+
+=item SOGLIA_RED
+
+E' il numero di secondi nei quali un'ip bloccato non puo' comunicare attraverso la macchina dove e' installato aLid. Quando la soglia di redenzione viene raggiunta l'ip bloccato viene sbloccato ( redenzione ). Il superamento e' calcolato nel seguente modo: 
+
+SE ( TEMPO_CORRENTE - TEMPO_BLOCCO > SOGLIA_RED ) 
+	SBLOCCA L'IP BLOCCATO
+ALTRIMENTI
+	L'IP BLOCCATO RESTA BLOCCATO
+
+=item FILE_CONSENTITI
+
+E' il path al file che contiene la lista degli ip immuni all'evento indicato dalla regola. Se viene rilevato un evento con un ip presente nel file FILE_CONSENTITI l'evento viene ignorato. Il file deve rispettare la seguente regola sintattica: ogni riga del file deve contenere solo un ip.
+
+=item NOTIFICA
+
+La tipologia di notifica adottata dalla regola. Sono previste 3 tipologia di opzioni: MAIL, LOG, ALL.
+
+=over 8
+
+=item MAIL
+
+Consente di inviare una mail di notifica a tutti gli indirizzi specificati nel file /etc/aLid/emails.conf
+
+=item LOG
+
+Consente di scrivere una riga nel file di log (/etc/aLid/log) dell'applicazione.
+	
+=item ALL
+
+Comprende entrambe le tipologie di notifiche B<MAIL> e B<LOG>.
+
+=back
+
+=item FILTER
+
+Specifica la politica da adottare riguardo gli ip rilevati dalla regola. Le opzioni accettate sono:  B<DROP> e B<NODROP>.
+
+=over 8
+
+=item DROP
+
+Blocca l'ip rilevato nel firewall, applicando un'apposita regola.
+
+=item NODROP
+
+Non esegue nessuna regola di drop nel firewall.
+
+=back
+			
+=item [FREQ_EMAIL]
+
+Specifica la frequenza di invio della mail di notifica in secondi. E' opzionale ed e' subordinata alla presenza delle opzioni MAIL o LOG.
+
+=item INPUT_FILE
+
+Consente di specificare un file di input sul quale verra' applicata la regola. Bisogna rispettare la seguente sintassi:
+
+=over 8
+
+	INPUT_FILE=FILE_PATH
+
+=back
+
+dove FILE_PATH e' il path del file sul quale viene applicata la regola.
+
+=back
+
+=back
+
+=head1 IMPLEMENTATION
+
+Ogni regola viene applicata tramite l'esecuzione di uno script parametrico:
+
+=over 8
+
+/var/aLid/script/eventProtect NOME_EVENTO ESPRESSIONE_REG INTERVALLO SOGLIA_EVT SOGLIA_RED FILE_CONSENTITI NOTIFICA FILTER [FREQ_EMAIL]
+
+=back
+
+Per consentire una lettura piu' efficiente cio' che viene letto dai rispettivi file di input viene passato attraverso <STDIN> e utilizzando un'ulteriore script (B<sharedTail>) che consente letture condivise sullo stesso file.
+
+=head1 EXAMPLES
+
+Esempio di definizione del file /etc/aLid/aLid.conf
+
+=over 8
+
+MAIL_SERVER = out.virgilio.it
+
+# List of default scripts
+
+SCRIPT=/etc/aLid/script/synProtect 10 5 7 /etc/aLid/ip_blocked_synprotect all drop 1
+
+SCRIPT=/etc/aLid/script/arpProtect all drop FILE_INPUT=/var/lib/arpwatch/arp.dat
+SCRIPT=yes hello > /dev/null																			
+
+RULE=SPAMMING \sDPT=25\s 5 10 5 7 /etc/aLid/ip_allowed_SPAMMING all drop FILE_INPUT=/var/log/iptables.log
+
+=back
+
+=head1 FILES
+
+=over 8
+
+=item B</etc/aLid/emails.conf>
+
+File in cui sono specificati gli indirizzi email a cui vengono spedite le mail di notica
+
+=item B</etc/aLid/log>
+
+File in cui sono salvate informazioni relative a eventi rilevati dall'applicazione
+
+=back
+
+=head1 REQUIREMENT
+
+=over 8
+
+=item B<arpwatch> 
+
+Arpwatch - http://www.securityfocus.com/tools/142
+
+=item B<DateTime> 
+
+DateTime - Perl Library of cpan community
+
+=item B<iptables> 
+
+iptables - Stateful firewall
+
+=back
+
+=head1 SEE ALSO
+
+aLid, eventProtect, sharedTail
+
+=head1 AUTHOR
+
+Andrea Martire (andreamartire@gmail.com)
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright © 2010 Andrea Martire <andreamartire@gmail.com>. 
+License  GPLv3+:  GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.
+This  is  free  software:  you  are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+

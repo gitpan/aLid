@@ -1,0 +1,124 @@
+=head1 NAME
+
+synProtect - Script per intercettare di tentativi di port scanning tramite Syn Scan
+
+=head1 SYNOPSIS
+
+B<synProtect INTERVALLO SOGLIA_EVT SOGLIA_RED FILE_IP_BLOCCATI NOTIFICA FILTRO [FREQ_EMAIL]>
+
+=head1 DESCRIPTION
+
+Utilizzato per intercettare tentativi di port scanning che utilizzano la tecnica SYN Scan. L'attaccante deve inviare numerosi pacchetti TCP finalizzati ad ottenere informazioni sulle porte. Ogni pacchetto ha solo il flag SYN abilitato. Raggiunta una particolare soglia fissata nella configurazione l'ip sorgente viene bloccato perche' ritenuto responsabile di port scanning.
+
+=head1 OPTIONS
+
+=over 8
+
+=item B<INTERVALLO> 
+
+E' il valore, in secondi, della finestra temporale da analizzare. Sia N il valore dell'intervallo allora la finestra temporale da analizzare e' [ TEMPO_CORRENTE - N , TEMPO_CORRENTE ].
+
+=item B<SOGLIA_EVT> 
+
+E' il numero massimo di volte che l'evento rintracciato può verificarsi all'interno della finestra temporale (INTERVALLO). L'ip sorgente, rintracciabile nel file di log, viene ritenuto responsabile. Al superamento della soglia aLid, in base alla configurazione, puo' bloccare l'ip sorgente o semplicemente notificare cio' che e' accaduto. Se un'ip viene bloccato, si tiene traccia anche del momento in cui cio' avviene, facendo riferimento al tempo universale (UTC) in secondi.
+
+=item B<SOGLIA_RED> 
+
+E' il numero di secondi nei quali un'ip bloccato non puo' comunicare attraverso la macchina dove e' installato aLid. Quando la soglia di redenzione viene raggiunta l'ip bloccato viene sbloccato ( redenzione ). Il superamento e' calcolato nel seguente modo: 
+
+SE ( TEMPO_CORRENTE - TEMPO_BLOCCO > SOGLIA_RED ) 
+	SBLOCCA L'IP BLOCCATO
+ALTRIMENTI
+	L'IP BLOCCATO RESTA BLOCCATO
+
+=item B<FILE_IP_BLOCCATI> 
+
+Serve per definire il path completo al file che contiene le informazioni sugli ip bloccati.
+
+=item B<NOTIFICA>
+
+La tipologia di notifica adottata dallo script. Sono previste 3 tipologia di opzioni: MAIL, LOG, ALL.
+
+=over 8
+
+=item B<MAIL>
+
+Consente di inviare una mail di notifica a tutti gli indirizzi specificati nel file /etc/aLid/emails
+
+=item B<LOG>
+
+Consente di scrivere una riga nel file di log (/etc/aLid/log) dell'applicazione.
+	
+=item B<ALL>
+
+Comprende entrambe le tipologie di notifiche B<MAIL> e B<LOG>.
+
+=back
+
+=item B<FILTRO>
+
+Specifica la politica da adottare riguardo gli ip rilevati. Le opzioni accettate sono:  B<DROP> e B<NODROP>.
+
+=over 8
+
+=item B<DROP>
+
+Blocca l'ip rilevato nel firewall, applicando un'apposita regola.
+
+=item B<NODROP>
+
+Non esegue nessuna regola di drop nel firewall.
+
+=back
+	
+=item B<FREQ_EMAIL>
+
+Specifica la frequenza di invio della mail di notifica in secondi. E' opzionale ed e' subordinata alla presenza delle opzioni MAIL o LOG.
+
+=back
+
+=head1 EXAMPLES
+
+=over 8
+
+=item B<synProtect 10 5 7 /etc/aLid/ip_blocked_synprotect all drop 60> 
+
+Esegue lo script utilizzando un intervallo di 10 secondi, 5 tentativi massimi nella finestra temporale, 7 secondi come soglia di redenzione, ip_blocked_synprotect e' il nome del file utilizzato, all e' la tipologia di notifica, drop il tipo di filtro e 60 e' la frequenza delle mail.
+
+=back
+
+=head1 FILES
+
+=over 8
+
+=item B</etc/aLid/aLid.conf> 
+
+=back
+
+File di configurazione dell'applicazione
+
+=head1 REQUIREMENT
+
+=over 8
+
+=item B<DateTime> 
+
+DateTime - Perl Library of cpan community
+
+=back
+
+=head1 SEE ALSO
+
+B<sharedTail, aLid, aLid.conf>
+
+=head1 AUTHOR
+
+Andrea Martire (andreamartire@gmail.com)
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright © 2010 Andrea Martire <andreamartire@gmail.com>. 
+License  GPLv3+:  GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.
+This  is  free  software:  you  are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+
