@@ -8,7 +8,7 @@ arpCheck RANGE EVT_BOUND RED_BOUND FILE_IP_BLOCKED NOTIFICATION FILTER [MAIL_FRE
 
 =head1 DESCRIPTION
 
-It detects 'flip flop' events that arpwatch throws. It's possible to customize application comportment through available options.
+It detects 'flip flop' events that arpwatch throws. It's possible to customize behavior application through available options.
 
 =head1 OPTIONS
 
@@ -20,11 +20,11 @@ It's value, in seconds, of temporal window that you would analyze. If N is the r
 
 =item B<EVT_BOUND>
 
-It's maximun times number that detected event can occur in temporal window (RANGE). The source ip is liable. Exceeded the threshold, aLid, depending on configuration, can block source ip or notify that happened. If an ip is blocked, is tracked the moment of blocking too with reference to universal time (UTC) in seconds.
+It's maximun times number that detected event can occur in temporal window (RANGE). The source ip is liable. Exceeded the threshold, aLid, depending on configuration, can block source ip or notify what is happened. If an ip is blocked, is tracked the moment of blocking too with reference to universal time (UTC) in seconds.
 
 =item B<RED_BOUND>
 
-Seconds number where a blocked ip can't comunicate through computer where aLid is installed. When redemption threshold is reached, the blocked ip is unlocked ( redemption ). Exceeding threshold is calculate in followed mode: 
+Seconds number where a blocked ip can't comunicate through computer where aLid is installed. When redemption threshold is reached, the blocked ip is unblocked ( redemption ). Exceeding threshold is calculate in followed way: 
 
 =over 8
 
@@ -47,11 +47,11 @@ Notification tipology. There are 3 kind of options: MAIL, LOG and ALL.
 	
 =item MAIL
 
-Allow to send a notication mail to all address specified in thefile /etc/aLid/emails
+It allow to send a notication mail to all address specified in the file /etc/aLid/emails
 
 =item LOG
 
-Allow to write a row in the log file (/etc/aLid/log) of application.
+It allow to write a row in the log file (/etc/aLid/log) of application.
 		
 =item ALL
 
@@ -61,7 +61,7 @@ It's made up of notification B<MAIL> and B<LOG> typology too.
 
 =item B<FILTER>
 
-It's specifics ip detection policy. Opzions accepted are:  B<DROP> and B<NODROP>.
+It's specifics ip detection policy. Options accepted are:  B<DROP> and B<NODROP>.
 
 =over 8
 
@@ -77,7 +77,7 @@ It doesn't block detected ip.
 
 =item B<MAIL_FREQ>
 
-Sending frequency of notification mail in seconds. It's optional and it's subject at the presence of options MAIL or LOG.
+Send frequency of notification mail in seconds. It's optional and it's subject at the presence of options MAIL or LOG.
 
 =item B<INTERFACE>
 
@@ -101,7 +101,7 @@ range 300 seconds, maximun 2 flip flop, 7 seconds before redemption, ip_blocked_
 
 =item B</etc/aLid/aLid.conf> 
 
-Configuration file of application
+Configuration's file of application
 
 =back
 

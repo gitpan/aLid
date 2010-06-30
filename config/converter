@@ -54,10 +54,3 @@ sub ipMatchNet  {
 }
 
 1;
-
-#if( &ipMatchNet('10.0.0.225','10.0.0.0','24') ) {
-#	print "It matches\n";
-#}
-#else{
-#	print "It don't matches\n";
-#}

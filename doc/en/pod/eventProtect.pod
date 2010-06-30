@@ -16,11 +16,11 @@ It is used to apply rules specified in configuration's file /etc/aLid/aLid.conf
 
 =item EVT_NAME
 
-It specifics the event's name in which is associated a rule. The name of event allows to indenfy the rule, that send a notific or drop's rule. The name of event is unambiguous in all rules.
+It specifics the event's name in which is associated a rule. The name of event allows to indentify the rule, that send a notific or drop's rule. The name of event is unambiguous in all rules.
 
 =item REG_EXPRESSION
 
-A regular expression allows to verify the presence of specified character inside of each line of file in input. When a file's line matches the regular expression so it is considered as presentation of monitored event. 
+A regular expression allows to verify the presence of characters specified inside of each line of file in input. When a file's line matches the regular expression so it is considered as presentation of monitored event. 
 
 =item RANGE
 
@@ -32,7 +32,7 @@ It's the maximun number of times that the found event can verifies inside of tem
 
 =item RED_BOUND
 
-It is the number of seconds in which an blocked ip can't communicate through machine where is installed the program. When the redemption's source is reached blocked ip is unlocked. The overcoming is calculated in the following way:
+It is the number of seconds in which an blocked ip can't communicate through machine where is installed the program. When the redemption's source is reached, blocked ip is unlocked. The overcoming is calculated in the following way:
 
 	IF ( NOW - BLOCKING_TIME > RED_BOUNG ) 
 		UNLOCK BLOCKED IP 
@@ -55,11 +55,11 @@ There are 4 kinds of notific option: MAIL, LOG, ALL, NOTHING.
 
 =item MAIL
 
-Send a notific email to alla addresses specified on file /etc/aLid/email.conf
+It sends a notific email to all addresses specified on file /etc/aLid/email.conf
 
 =item LOG
 
-Allow to write a line on log file of application.
+It allows to write a line on log file of application.
 
 =item ALL
 
@@ -67,7 +67,7 @@ Include both notify's typologies MAIL e LOG.
 
 =item NOTHING
 
-No nothification
+No notification
 
 =back
 
@@ -79,7 +79,7 @@ It specifics the policy to adopt considering ip detected. Options accepted are: 
 
 =item DROP
 
-It block detected ip in the firewall applying a specific rule.
+It blocks detected ip in the firewall applying a specific rule.
 
 =item NODROP
 

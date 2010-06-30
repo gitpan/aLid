@@ -16,7 +16,7 @@
 # Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 use DateTime;
-#	eventProtect $nomeEvt $er $intervallo $sEvento $sRedenzione $freqEmail $fileAllowed $mode $drop
+#	eventProtect name exprReg range bound redemption freqEmail fileAllowed notify filter
 
 require "/etc/aLid/sendmail";
 require "/etc/aLid/sendlog";

@@ -1,6 +1,6 @@
 =head1 NAME
 
-B<synProtect - Script used for intecept attempts of port scanning by Syn scan.>
+B<synProtect - Script used for intercept attempts of port scanning by Syn scan.>
 
 =head1 SYNOPSIS
 
@@ -8,7 +8,7 @@ B<synProtect RANGE EVT_BOUND RED_BOUND FILE_IP_BLOCKED NOTIFY FILTER [FREQ_EMAIL
 
 =head1 DESCRIPTION
 
-It is used for intecept attempts of port scanning that used the tecnic SYN Scan. The attacker must send many package TCP with purpose of obtain informations about ports. Each package has enabled only flag SYN. When is reached a particular threshold fixed in the configuration, the source ip is blocked because it's responsable of port scanning.
+It is used for intercept attempts of port scanning that use the tecnic SYN Scan. The attacker must send many package TCP with purpose of obtain informations about ports. Each package has enabled only flag SYN. When is reached a particular threshold fixed in the configuration, the source ip is blocked because it's responsable of port scanning.
 
 =head1 OPTIONS
 
@@ -43,11 +43,11 @@ There are 4 kinds of notific option: MAIL, LOG, ALL, NOTHING.
 
 =item B<MAIL>
 
-Send a notific email to alla addresses specified on file /etc/aLid/email.conf
+It sends a notific email to alla addresses specified on file /etc/aLid/email.conf
 
 =item B<LOG>
 
-Allow to write a line on log file of application.
+It allows to write a line on log file of application.
 	
 =item B<ALL>
 
@@ -55,7 +55,7 @@ Include both notify's typologies B<MAIL> e B<LOG>.
 
 =item B<NOTHING>
 
-No nothification.
+No notification.
 
 =back
 
@@ -67,7 +67,7 @@ It specifics the policy to adopt considering ip detected. Options accepted are: 
 
 =item B<DROP>
 
-It block detected ip in the firewall applying a specific rule.
+It blocks detected ip in the firewall applying a specific rule.
 
 =item B<NODROP>
 

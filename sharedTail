@@ -28,7 +28,7 @@ print INFO "$$\n";
 #print "TAIL FILE = $ARGV[0].\n";
 #open LOGFILE, "tail --sleep-interval=0 -f $ARGV[0] |" || die "Error Opening the file: $ARGV[0]\n";
 
-$pid = open2(LOGFILE, CHLD_IN, "tail --sleep-interval=0 -f $ARGV[0]");
+$pid = open2(LOGFILE, CHLD_IN, "tail --sleep-interval=0 -F $ARGV[0]");
 
 print INFO "$pid\n";
 close INFO;

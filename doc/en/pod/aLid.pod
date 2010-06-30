@@ -8,7 +8,7 @@ aLid [OPTIONS]
 
 =head1 DESCRIPTION
 
-aLid is a system of Automatic Intrusion Detection and Filtering. It is written in perl, and it is based on the analysis of file log. It allows to entercept attempts of port scanning from attackers and it operates filtering traffic. Moreover it is possible to define a lis of rules and filters, in which aLid will adapt his behaviour. if you would an effective programm, it must installed in a firewall, because it can insert filter's rules too.
+aLid is a system of Automatic Intrusion Detection and Filtering. It is written in perl, and it is based on the analysis of file log. It allows to entercept attempts of port scanning from attackers and it operates filtering traffic. Moreover it is possible to define a list of rules and filters, in which aLid will adapt his behaviour. if you would an effective programm, it must be installed in a firewall, because it can insert filter's rules too.
 
 =head1 OPTIONS
 
@@ -28,7 +28,7 @@ It allows only execution of stateful filter (STATEFUL_SCRIPT)
 
 =item B<-a> 
 
-It executes all options specified in configuration's file /etc/aLid/aLid.conf. It's default option if you run the program without options.
+It executes all options specified in configuration's file /etc/aLid/aLid.conf. It's a default option if you run the program without options.
 
 =item B<-h> 
 

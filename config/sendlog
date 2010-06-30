@@ -19,8 +19,6 @@ sub sendlog
 {
 	my $logfile = $_[0];
 	my $msg = $_[1];
-	#print STDERR "File: $logfile"; 
-	#print STDERR " Msg: $msg\n";
 
 	my @months = qw(Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec);
 	my @weekDays = qw(Sun Mon Tue Wed Thu Fri Sat Sun);

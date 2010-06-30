@@ -22,7 +22,7 @@ Path to file in which you want to use share reading.
 
 =item B<DESCR_*>
 
-Stream of writing in which sharedtail passes erad data to single script.
+Stream of writing in which sharedtail passes each data to single script.
 
 =back
 

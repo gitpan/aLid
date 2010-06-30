@@ -49,7 +49,7 @@ There are 4 kinds of notific option: MAIL, LOG, ALL, NOTHING.
 
 =item MAIL
 
-Send a notific email to alla addresses specified on file /etc/aLid/email.conf
+Send a notific email to all addresses specified on file /etc/aLid/email.conf
 
 =item LOG
 
@@ -61,7 +61,7 @@ Include both notify's typologies B<MAIL> e B<LOG>.
 	
 =item NOTHING
 
-No nothification.
+No notification.
 
 =back
 
@@ -83,7 +83,7 @@ It doesn't execute a rule of drop in the firewall.
 
 =item B<INTERFACE>
 
-Network interface that you want monitor
+It is the network interface that you want monitor
 
 =back
 

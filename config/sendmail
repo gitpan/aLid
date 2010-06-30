@@ -42,12 +42,6 @@ sub sendmail
 							);
 
 	die "Couldn't connect to server $mail_server." unless $smtp;
-	#print "--- Server connection opened ---\n";
-
-	#$USERNAME = "aWRzcGVybA==";
-	#$PASSWORD = "dW5pY2FsaWRz";
-
-	#$smtp->auth ( $USERNAME, $PASSWORD ) or die "Could not authenticate $!";
 	
 	if ( !$smtp->mail( $email_source ) ) {
 		print "sender not accepted\n";

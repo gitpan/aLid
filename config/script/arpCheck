@@ -21,7 +21,7 @@ require "/etc/aLid/sendmail";
 require "/etc/aLid/sendlog";
 require "/etc/aLid/time";
 
-#	arpCheck 300 2 7 /etc/aLid/ip_blocked_arpcheck all drop 1 eth1
+#	arpCheck range bound redemption fileBlocked notify filter freqEmail interface
 
 qx{ touch /etc/aLid/run.info };
 open INFO, ">>/etc/aLid/run.info";
@@ -194,7 +194,7 @@ while( $line = <ARPOUT> ) {
 	#while (($k, $v) = each(%dati)){
 		#print "($k,$v)\n";
 	#}
-	#print "---------$utc_t--------------\n";
+	#print "---------$utc_t--------------\n";freqEmail
 
 	# new consumptive structure
 	%report = (); # delete old structure

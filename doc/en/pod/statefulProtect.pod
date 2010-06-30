@@ -72,11 +72,11 @@ There are 4 kinds of notific option: MAIL, LOG, ALL, NOTHING.
 
 =item MAIL
 
-Send a notific email to alla addresses specified on file /etc/aLid/email.conf
+It sends a notific email to alla addresses specified on file /etc/aLid/email.conf
 
 =item LOG
 
-Allow to write a line on log file of application.
+It allows to write a line on log file of application.
 
 =item ALL
 
@@ -96,7 +96,7 @@ It specifics the policy to adopt considering ip detected. Options accepted are: 
 
 =item DROP
 
-It block detected ip in the firewall applying a specific rule.
+It blocks detected ip in the firewall applying a specific rule.
 
 =item NODROP
 

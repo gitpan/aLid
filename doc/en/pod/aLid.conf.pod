@@ -8,7 +8,7 @@ aLid [OPTIONS]
 
 =head1 DESCRIPTION
 
-It allow to configure aLid. There are four kinds of options: SCRIPT, OTHER_SCRIPT, RULE and STATEFUL_FILTER.
+It allows to configure aLid. There are four kinds of options: SCRIPT, OTHER_SCRIPT, RULE and STATEFUL_FILTER.
 
 =over 8
 
@@ -16,7 +16,7 @@ OPTION=SPECIFICS
 
 =back
 
-This form is followed of specifications pertinents to option indicate. Options SCRIPT, OTHER_SCRIPT and RULE are describer in a only line. 
+This form is followed of specifications pertinents to option indicate. Options SCRIPT, OTHER_SCRIPT and RULE are described in a only line. 
 
 =head1 OPTIONS
 
@@ -24,11 +24,11 @@ This form is followed of specifications pertinents to option indicate. Options S
 
 =item B<MAIL_SERVER>
 
-It is the ip address of server, used to send notific's email. It is advisable to insert MX server of own subnet. Otherwise if it specifies any server MX, nedds to modify present script /etc/aLid/sendmail with purpose of consent the authentication.
+It is the ip address of server, used to send notific's email. It is advisable to insert MX server of own subnet. Otherwise if it specifies any server MX, needs to modify present script /etc/aLid/sendmail with purpose of consent the authentication.
 
 =item B<SCRIPT> 
 
-Each option of script type describes th execution of a script at the beginning of application. Scripts invoked by this option are called in the same way in which they are specified. Option script must respect the following syntax: 
+Each option of script type describes the execution of a script at the beginning of application. Scripts invoked by this option are called in the same way in which they are specified. Option script must respect the following syntax: 
 
 =over 8
 
@@ -52,7 +52,7 @@ More info: see statefulProtect
 
 =item B<RULE> 
 
-Each option of kind RULE describes a tule that will be observed by aLid. A rule is a set of informations that allow to aLid to intercept a particular event in log's file and allow to take precautions. Each rule has the following syntax:
+Each option of kind RULE describes a rule that will be observed by aLid. A rule is a set of informations that allow to aLid to intercept a particular event in log's file and allow to take precautions. Each rule has the following syntax:
 
 =over 8
 					
@@ -62,7 +62,7 @@ RULE=EVT_NAME REG_EXPRESSION RANGE EVT_BOUND RED_BOUND ALLOWED_FILE NOTIFY FILTE
 
 =item EVT_NAME
 
-It specifics the event's name in which is associated a rule. The name of event allows to indenfy the rule, that send a notific or drop's rule. The name of event is unambiguous in all rules.
+It specifics the event's name in which is associated a rule. The name of event allows to indentify the rule, that send a notific or drop's rule. The name of event is unambiguous in all rules.
 
 =item REG_EXPRESSION
 
@@ -101,11 +101,11 @@ There are 4 kinds of notific option: MAIL, LOG, ALL, NOTHING.
 
 =item MAIL
 
-Send a notific email to alla addresses specified on file /etc/aLid/email.conf
+Send a notific email to all addresses specified on file /etc/aLid/email.conf
 
 =item LOG
 
-Allow to write a line on log file of application.
+Allows to write a line on log file of application.
 
 =item ALL
 
@@ -113,7 +113,7 @@ Include both notify's typologies MAIL e LOG.
 
 =item NOTHING
 
-No nothification
+No notification
 
 =back
 	
@@ -125,7 +125,7 @@ It specifics the policy to adopt considering ip detected. Options accepted are: 
 
 =item DROP
 
-It block detected ip in the firewall applying a specific rule.
+It blocks detected ip in the firewall applying a specific rule.
 
 =item NODROP
 
@@ -135,11 +135,11 @@ It doesn't execute a rule of drop in the firewall.
 			
 =item [FREQ_EMAIL]
 
-It specifics the attendance of send of notifics mail in seconds. It's optional and subordinate at the presence of options MAIL or LOG.
+It specifics the attendance send of notifics mail in seconds. It's optional and subordinate at the presence of options MAIL or LOG.
 
 =item INPUT_FILE
 
-Input file where rule is applied. Needs to respect following syntax:
+Input file where a rule is applied. Needs to respect following syntax:
 
 =over 8				
 
@@ -192,7 +192,7 @@ RULE=SPAM \sDPT=25\s 5 10 5 7 /etc/aLid/ip_allowed_SPAMMING all drop FILE_INPUT=
 
 =item B</etc/aLid/emails.conf>
 
-File in which are specified email's addresses where are send notific's mails.
+File in which are specified email's addresses and where are send notific's mails.
 
 =item B</etc/aLid/log>
 
