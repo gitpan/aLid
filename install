@@ -72,9 +72,9 @@ qx{ chmod a+x /usr/bin/sharedTail };
 
 qx{ cp -r doc/it/man/* /usr/share/man/it/man1 };
 qx{ cp -r doc/en/man/* /usr/share/man/man1 };
-#qx{ cp S20aLid /etc/rc2.d/S20aLid };
-#qx{ cp S20aLid /etc/rc3.d/S20aLid };
-#qx{ cp S20aLid /etc/rc4.d/S20aLid };
-#qx{ cp S20aLid /etc/rc5.d/S20aLid };
+qx{ cp S20aLid /etc/rc2.d/S20aLid };
+qx{ cp S20aLid /etc/rc3.d/S20aLid };
+qx{ cp S20aLid /etc/rc4.d/S20aLid };
+qx{ cp S20aLid /etc/rc5.d/S20aLid };
 
-#qx{ mandb };
+qx{ mandb };
